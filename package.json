@@ -1,5 +1,5 @@
 {
-  "name": "herculesX",
+  "name": "herculesx",
   "version": "0.1.0",
   "description": "Simple, predictable, developer friendly state management for alipay mini-program",
   "main": "dist/index.js",
