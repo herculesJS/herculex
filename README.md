@@ -18,6 +18,60 @@ Simple, predictable, developer friendly state management for alipay mini-program
 - [x] router: improve router usecase, auto router dispatcher, add resume lifecycle
 - [x] use immer and immutable helper to promise immutable
 
+
+## Installation
+
+* Installation: `npm install herculesx --save`.
+* basic usage:
+  * index.js
+  ``` 
+  import store from './store';
+  const app = getApp();
+  Page(store.register({
+    onLoad() {},
+    onShow() {},
+    ...
+    onTap() {}
+  })
+  ```
+  * store.js
+  ```
+   export default new Store({
+   connectGlobal: true,
+   state: {
+       userInfo: {},
+       bannerList: [],
+       UI,
+    },
+   getters: {
+    cardCount: (state, getters, global) => global.getIn(['entity', 'cardList', 'length'], 0),
+    avatar: state => state.getIn(['userInfo', 'iconUrl'], ASSETS.DEFAULT_AVATAR),
+    nickName: state => state.getIn(['userInfo', 'nick']),
+    cardList: (state, getters, global) => global.getIn(['entity', 'cardList'], []).map(mapCardItemToData),
+   },
+   plugins: [ 'logger' ],
+   actions: {
+     async getUserInfo({ commit, state, dispatch }, payload) {
+       const userInfo = await cardListService.getUserInfo();
+       commit('getUserInfo', { userInfo });
+     },
+   },
+  });
+  ```
+  * index.axml
+  ```
+  <view a:if="{{!!$global.entity.cardList}}">
+    {{userInfo.name}}
+     <navigator a:if="{{$getters.cardCount > 0}}" class="link" url="/pages/card-create/index">
+        <button type="primary">{{UI.TEST}}</button>
+     </navigator>
+  </view>
+  ```
+
+## Examples
+
+## Quick Start
+  
 ## TODO
 - [ ] doc & gitbook,github.io
 - [ ] examples & boilerplate
