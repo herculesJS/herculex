@@ -73,6 +73,7 @@ Simple, predictable, developer friendly state management for alipay mini-program
 ## Quick Start
   
 ## TODO
+- [ ] add travis ci
 - [ ] doc & gitbook,github.io
 - [ ] examples & boilerplate
 - [ ] cli
