@@ -1,0 +1,13 @@
+{
+  "extends": "standard",
+  "globals": {
+    "getCurrentPages": false
+  },
+  "parser": "babel-eslint",
+  "rules": {
+    "semi": ["error", "always"], //必须使用分号
+    "space-before-function-paren": 0,  // function前面的空格没有必要校验,
+    "no-unused-vars": 0,
+    "one-var": 0
+  }
+}
