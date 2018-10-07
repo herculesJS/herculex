@@ -7,12 +7,13 @@ Simple, predictable, developer friendly state management for alipay mini-program
 ## Feature
 
 - [x] Component, Page, global wrapper
-- [x] vuex like apis and concept: actions, mutations, getters, plugins.
+- [x] vuex-like apis and concept: actions, mutations, getters, plugins
 - [x] strengthen mutation, getters: add immutable helper, global power to getters.and improve mutation usecase, add some common innerMutation
 - [x] plugins support, add logger as inner plugin
-- [x] cross page communication: message channel, auto router dispatcher, getState by namespace...
+- [x] cross page communication: message channel, auto router dispatcher(manage router ), get ready-only State by namespace
 - [x] cross components communication: support ref
-- [x] connect: connect Page to Component, add mapStateToProps, mapGettersToProps...
+- [x] connect: connect Page to Component, add mapStateToProps, mapGettersToProps, use more developer friendly way.
+- [x] mapHelpers: connect actions and mutations to Page, Componnet methods
 - [x] global store support: manage all store, component instance and global state, global message bus ,event bus
 - [x] event bus support
 - [x] router: improve router usecase, auto router dispatcher, add resume lifecycle
@@ -28,10 +29,22 @@ Simple, predictable, developer friendly state management for alipay mini-program
   import store from './store';
   const app = getApp();
   Page(store.register({
-    onLoad() {},
-    onShow() {},
+    mapActionsToMethod: ['getUserInfo'],
+    mapMutationsToMethod: ['helperWay'],
+    onLoad() {
+     const message = this.$message.pop('card-home');
+     // get message from last page as you like
+    },
+    onReady() {
+      const componentInstance = this.$getRef('card-input');
+      // get component ref, then get data when you need ,specially in form condition
+    },
+    onResume(ctx) {
+     // get ctx here, 
+    },
     ...
-    onTap() {}
+    onTap() {
+    }
   })
   ```
   * store.js
@@ -44,14 +57,28 @@ Simple, predictable, developer friendly state management for alipay mini-program
        UI,
     },
    getters: {
+    // functional promgraming, add some helpers
     cardCount: (state, getters, global) => global.getIn(['entity', 'cardList', 'length'], 0),
     avatar: state => state.getIn(['userInfo', 'iconUrl'], ASSETS.DEFAULT_AVATAR),
     nickName: state => state.getIn(['userInfo', 'nick']),
     cardList: (state, getters, global) => global.getIn(['entity', 'cardList'], []).map(mapCardItemToData),
    },
-   plugins: [ 'logger' ],
+   mutations: {
+     mutableWay(state, payload) {
+     // use immer promise immutable
+      state.a = payload.a
+     },
+     helperWay(state, payload) {
+       // use inner helper: setIn, deleteIn, update
+      return state.setIn(['userInfo', 'name'], payload.name)
+     }
+   },
+   plugins: [ 'logger' ], // inner plugin logger
    actions: {
-     async getUserInfo({ commit, state, dispatch }, payload) {
+     async getUserInfo({ commit, state, dispatch, global, getters, }, payload) {
+       // get router and context in global store, all state are binded immutable helper
+       const routerCtx = global.getIn(['router', 'currentRouter']);
+       const avatar = getters.getIn('avatar');
        const userInfo = await cardListService.getUserInfo();
        commit('getUserInfo', { userInfo });
      },
@@ -74,11 +101,13 @@ Simple, predictable, developer friendly state management for alipay mini-program
   
 ## TODO
 - [ ] add travis ci
+- [ ] add middleware support, take over api middleware
 - [ ] doc & gitbook,github.io
 - [ ] examples & boilerplate
-- [ ] cli
+- [ ] cli for static code check, and generate snipets
+- [ ] ide plugin
 - [ ] test-utils & mock helper
 - [ ] dev-tools for ide, standalone
 - [ ] modules (need deeply design)
 - [ ] error catcher plugin
-- [ ] refactory, separate appx data setter as independent repo
+- [ ] refactory and tests, separate appx data setter as independent repo
