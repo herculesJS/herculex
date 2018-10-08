@@ -55,7 +55,7 @@ export default function connect(options) {
           // store 触发的更新
           store.$emitter.addListener('updateState', ({state = {}}) => {
             const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
-            const originBindViewId = this.$page.$viewId;
+            const originBindViewId = this.$page.$viewId || -1;
             const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId : -1;
             if (originBindViewId !== currentViewId) return;
             that.setData(nextData);

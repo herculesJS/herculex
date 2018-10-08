@@ -58,7 +58,7 @@ class Store {
       const currentPageInstance = getCurrentPages().pop() || {};
       global.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route),
-        fromViewId: currentPageInstance.$viewId
+        fromViewId: currentPageInstance.$viewId || -1
       });
       originOnHide && originOnHide.apply(this, arguments);
       this._isHided = true;
@@ -106,19 +106,18 @@ class Store {
       this.$emitter = emitter;
       this.$globalEmitter = global.emitter;
       this.$message = global.messageManager;
-      if (that.connectGlobal) {
-        // 先同步
         // 先榜上更新 store 的 监听器
-        emitter.addListener('updateState', ({ state }) => {
-          const newData = setStoreDataByState(this.data, state);
-          const currentPageInstance = getCurrentPages().pop() || {};
-          const instanceView = onloadInstance.$viewId;
-          const currentView = currentPageInstance.$viewId || -1;
-            // 已经不在当前页面的不再触发
-          if (instanceView === currentView) {
-            this.setData(newData);
-          }
-        });
+      emitter.addListener('updateState', ({ state }) => {
+        const newData = setStoreDataByState(this.data, state);
+        const currentPageInstance = getCurrentPages().pop() || {};
+        const instanceView = onloadInstance.$viewId || -1;
+        const currentView = currentPageInstance.$viewId || -1;
+        // 已经不在当前页面的不再触发
+        if (instanceView === currentView) {
+          this.setData(newData);
+        }
+      });
+      if (that.connectGlobal) {
        // 立马触发同步
         emitter.emitEvent('updateState', {
           state: {
@@ -137,7 +136,7 @@ class Store {
         // 增加nextprops的关联
         global.emitter.addListener('updateGlobalStore', () => {
           const currentPageInstance = getCurrentPages().pop() || {};
-          const instanceView = onloadInstance.$viewId;
+          const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
           // 已经不在当前页面的不再触发
           if (instanceView !== currentView) return;
@@ -158,8 +157,9 @@ class Store {
       }
       this.subscribe = function(subscriber, actionSubscriber) {
         emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+          console.log('newState', state, getCurrentPages(), instanceView);
           const currentPageInstance = getCurrentPages().pop() || {};
-          const instanceView = onloadInstance.$viewId;
+          const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
           // 已经不在当前页面的不再触发
           if (instanceView === currentView) {

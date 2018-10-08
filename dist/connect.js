@@ -86,7 +86,7 @@ function connect(options) {
                 state = _ref$state === undefined ? {} : _ref$state;
 
             var nextData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
-            var originBindViewId = _this.$page.$viewId;
+            var originBindViewId = _this.$page.$viewId || -1;
             var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId : -1;
             if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
