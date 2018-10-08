@@ -22,7 +22,7 @@ Simple, predictable, lightweight, high performance, developer friendly state man
 
 ## Installation
 
-* Installation: `npm install herculesx --save`.
+* Installation: `npm install herculex --save`.
 * basic usage:
   * index.js
   ``` 
