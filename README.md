@@ -100,6 +100,7 @@ Simple, predictable, lightweight, high performance, developer friendly state man
 ## Quick Start
   
 ## TODO
+- [ ] add pageBeforeRender Action to do something before instance created
 - [ ] add travis ci
 - [ ] add middleware support, take over api middleware
 - [ ] doc & gitbook,github.io
