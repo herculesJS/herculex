@@ -30,7 +30,6 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
         }, {});
     return { ...outterState, ...gettersState };
   }
-  console.log('shouldUpdateKeys', shouldUpdateKeys);
   const outterState = Object.keys(mapStateToProps).reduce((p, v) => {
     if (isString(mapStateToProps[v])) {
       if (!shouldUpdateKeys.includes(mapStateToProps[v])) {

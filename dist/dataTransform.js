@@ -58,7 +58,6 @@ function setDataByStateProps(mapStateToProps) {
     }, {});
     return _extends({}, _outterState, gettersState);
   }
-  console.log('shouldUpdateKeys', shouldUpdateKeys);
   var outterState = Object.keys(mapStateToProps).reduce(function (p, v) {
     if ((0, _is.isString)(mapStateToProps[v])) {
       if (!shouldUpdateKeys.includes(mapStateToProps[v])) {

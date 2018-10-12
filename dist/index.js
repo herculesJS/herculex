@@ -208,7 +208,6 @@ var Store = function () {
               mutation = _ref2.mutation,
               prevState = _ref2.prevState;
 
-          console.log('newState', state, getCurrentPages(), instanceView);
           var currentPageInstance = getCurrentPages().pop() || {};
           var instanceView = onloadInstance.$viewId || -1;
           var currentView = currentPageInstance.$viewId || -1;

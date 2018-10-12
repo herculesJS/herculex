@@ -76,7 +76,6 @@ function commitGlobal(type, payload) {
     type = 'update';
   }
   var finalMutation = mutationHandler(mutations[type], _global2.default.getGlobalState(), payload);
-  console.info('%c global mutation: ' + type, 'color: #03A9F4; font-weight: bold', payload, new Date().getTime());
   var tmp = { state: finalMutation, mutation: { type: '$global:' + type, payload: payload } };
   _global2.default.emitter.emitEvent('updateState', tmp);
   // commit 的结果是一个同步行为

@@ -157,7 +157,6 @@ class Store {
       }
       this.subscribe = function(subscriber, actionSubscriber) {
         emitter.addListener('updateState', ({ state, mutation, prevState }) => {
-          console.log('newState', state, getCurrentPages(), instanceView);
           const currentPageInstance = getCurrentPages().pop() || {};
           const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
