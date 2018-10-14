@@ -8,6 +8,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
   const stateToExpose = wrapDataInstance({ ...finalData });
   const gettersToExpose = wrapDataInstance({ ...finalData.$getters });
   const shouldUpdateKeys = Object.keys(data);
+  const ownProps = {...this.props};
 
   if (mapGettersToProps) {
     gettersState = mapGettersToProps.filter(d => !!d).reduce((p, v) => {
@@ -18,7 +19,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
   // 对齐 redux 的用法，第二个为 ownProps，不是很推荐，每次更新都会计算
   // TODO: 增加记忆点,暂时开发者自己保证
   if (isFunc(mapStateToProps)) {
-    return mapStateToProps(stateToExpose, instance.props, gettersToExpose);
+    return mapStateToProps(stateToExpose, wrapDataInstance(ownProps), gettersToExpose);
   }
   if (isArray(mapStateToProps)) {
     // 必须新增部分包含这样的更新
@@ -38,7 +39,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
       }
       p[v] = finalData[mapStateToProps[v]];
     } else {
-      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, instance.props, config);
+      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, wrapDataInstance(ownProps), config);
     }
     return p;
   }, {});

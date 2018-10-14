@@ -9,17 +9,27 @@ function getPath(link, number = 1) {
   return isString(link) && link.split('/')[number];
 }
 
+const defaultConfig = {
+  data: {},
+  props: {},
+  methods: {}
+};
+
 export default function connect(options) {
-  const { mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace } = options;
-  return function (config) {
+  const { mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace, data = {}, props = {} } = options;
+  return function (config = defaultConfig) {
     if (options.mapActionsToMethod) {
       mapActionsToMethod(options.mapActionsToMethod, false, config.methods);
+    }
+    if (options.methods) {
+      mapMutationsToMethod(options.methods, config.methods);
     }
     if (options.mapMutationsToMethod) {
       mapMutationsToMethod(options.mapMutationsToMethod, config.methods);
     }
     const _didMount = config.didMount;
     const key = namespace || instanceName;
+    Object.assign(config, { data, props });
     return {
       ...config,
       methods: {
@@ -47,16 +57,16 @@ export default function connect(options) {
         });
         this.$emitter = global.emitter;
         const store = targetInstanceObj.store;
-        const initialData = setDataByStateProps(mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
+        const initialData = setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
         global.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
         if (mapStateToProps) {
           // store 触发的更新
           store.$emitter.addListener('updateState', ({state = {}}) => {
-            const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
+            const nextData = setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
             const originBindViewId = this.$page.$viewId || -1;
-            const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId : -1;
+            const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
             if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
           });

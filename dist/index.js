@@ -104,6 +104,9 @@ var Store = function () {
     if (config.mapActionsToMethod) {
       (0, _mapHelpersToMethod.mapActionsToMethod)(config.mapActionsToMethod, this.actions, config);
     }
+    if (config.methods) {
+      (0, _mapHelpersToMethod.mapMutationsToMethod)(config.methods, config);
+    }
     if (config.mapMutationsToMethod) {
       (0, _mapHelpersToMethod.mapMutationsToMethod)(config.mapMutationsToMethod, config);
     }

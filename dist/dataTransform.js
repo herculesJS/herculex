@@ -34,6 +34,7 @@ function setDataByStateProps(mapStateToProps) {
   var stateToExpose = (0, _wrapDataInstance2.default)(_extends({}, finalData));
   var gettersToExpose = (0, _wrapDataInstance2.default)(_extends({}, finalData.$getters));
   var shouldUpdateKeys = Object.keys(data);
+  var ownProps = _extends({}, this.props);
 
   if (mapGettersToProps) {
     gettersState = mapGettersToProps.filter(function (d) {
@@ -46,7 +47,7 @@ function setDataByStateProps(mapStateToProps) {
   // 对齐 redux 的用法，第二个为 ownProps，不是很推荐，每次更新都会计算
   // TODO: 增加记忆点,暂时开发者自己保证
   if ((0, _is.isFunc)(mapStateToProps)) {
-    return mapStateToProps(stateToExpose, instance.props, gettersToExpose);
+    return mapStateToProps(stateToExpose, (0, _wrapDataInstance2.default)(ownProps), gettersToExpose);
   }
   if ((0, _is.isArray)(mapStateToProps)) {
     // 必须新增部分包含这样的更新
@@ -66,7 +67,7 @@ function setDataByStateProps(mapStateToProps) {
       }
       p[v] = finalData[mapStateToProps[v]];
     } else {
-      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, instance.props, config);
+      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, (0, _wrapDataInstance2.default)(ownProps), config);
     }
     return p;
   }, {});

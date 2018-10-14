@@ -18,8 +18,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function getPath(link) {
   return link && link.split('/')[1];
 }
+// 允许空
+function GlobalStore() {
+  var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-function GlobalStore(config) {
   (0, _storeConfigPreHandle2.default)(config);
   _global2.default.setGlobalStoreConfig(config);
   return function (config) {

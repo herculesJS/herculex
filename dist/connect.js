@@ -32,6 +32,12 @@ function getPath(link) {
   return (0, _is.isString)(link) && link.split('/')[number];
 }
 
+var defaultConfig = {
+  data: {},
+  props: {},
+  methods: {}
+};
+
 function connect(options) {
   var _options$mapStateToPr = options.mapStateToProps,
       mapStateToProps = _options$mapStateToPr === undefined ? [] : _options$mapStateToPr,
@@ -39,17 +45,27 @@ function connect(options) {
       mapGettersToProps = _options$mapGettersTo === undefined ? [] : _options$mapGettersTo,
       _options$instanceName = options.instanceName,
       instanceName = _options$instanceName === undefined ? '' : _options$instanceName,
-      namespace = options.namespace;
+      namespace = options.namespace,
+      _options$data = options.data,
+      data = _options$data === undefined ? {} : _options$data,
+      _options$props = options.props,
+      props = _options$props === undefined ? {} : _options$props;
 
-  return function (config) {
+  return function () {
+    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultConfig;
+
     if (options.mapActionsToMethod) {
       (0, _mapHelpersToMethod.mapActionsToMethod)(options.mapActionsToMethod, false, config.methods);
+    }
+    if (options.methods) {
+      (0, _mapHelpersToMethod.mapMutationsToMethod)(options.methods, config.methods);
     }
     if (options.mapMutationsToMethod) {
       (0, _mapHelpersToMethod.mapMutationsToMethod)(options.mapMutationsToMethod, config.methods);
     }
     var _didMount = config.didMount;
     var key = namespace || instanceName;
+    (0, _assign2.default)(config, { data: data, props: props });
     return _extends({}, config, {
       methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config)),
       didMount: function didMount() {
@@ -75,7 +91,7 @@ function connect(options) {
         });
         this.$emitter = _global2.default.emitter;
         var store = targetInstanceObj.store;
-        var initialData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
+        var initialData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
         _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
@@ -85,9 +101,9 @@ function connect(options) {
             var _ref$state = _ref.state,
                 state = _ref$state === undefined ? {} : _ref$state;
 
-            var nextData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
+            var nextData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
             var originBindViewId = _this.$page.$viewId || -1;
-            var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId : -1;
+            var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
             if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
           });

@@ -20,6 +20,8 @@ function wrapMutation(config) {
 }
 
 function configPreHandler(config) {
+  // 防空
+  config.state = config.state || {};
   // 给 mutaiton 包装是否需要 immer 操作
   if (config.mutations) {
     wrapMutation(config.mutations);

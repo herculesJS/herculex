@@ -4,8 +4,8 @@ import configPreHandler from './storeConfigPreHandle';
 function getPath(link) {
   return link && link.split('/')[1];
 }
-
-export default function GlobalStore(config) {
+// 允许空
+export default function GlobalStore(config = {}) {
   configPreHandler(config);
   global.setGlobalStoreConfig(config);
   return function(config) {

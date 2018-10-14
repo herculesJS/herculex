@@ -51,6 +51,9 @@ class Store {
     if (config.mapActionsToMethod) {
       mapActionsToMethod(config.mapActionsToMethod, this.actions, config);
     }
+    if (config.methods) {
+      mapMutationsToMethod(config.methods, config);
+    }
     if (config.mapMutationsToMethod) {
       mapMutationsToMethod(config.mapMutationsToMethod, config);
     }
