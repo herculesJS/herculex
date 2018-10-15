@@ -261,7 +261,7 @@ var Store = function () {
           return (0, _wrapDataInstance2.default)(this.data);
         }
       });
-      this.$getters = (0, _wrapDataInstance2.default)(_extends({}, this.state.$getters));
+      this.$getters = (0, _wrapDataInstance2.default)(this.state.$getters);
       this.$global = (0, _wrapDataInstance2.default)(_extends({}, this.state.$global));
       // 获取其他 store 的只读数据
       this.$getState = function (name) {
