@@ -96,9 +96,10 @@ Simple, predictable, lightweight, high performance, developer friendly state man
   ```
 
 ## Examples
-* quick start
-  * [Counter](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/counter) : show basic usage as commit & dispatch
-  * [TODOS](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/todos): show how components and modules work
+* appx (alipay mini program)
+  * quick start
+    * [Counter](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/counter) : show basic usage as commit & dispatch
+    * [TODOS](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/todos): show how components and modules work
 
 ## Turtoral
   
