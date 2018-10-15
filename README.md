@@ -96,8 +96,12 @@ Simple, predictable, lightweight, high performance, developer friendly state man
   ```
 
 ## Examples
+* appx (alipay mini program)
+  * quick start
+    * [Counter](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/counter) : show basic usage as commit & dispatch
+    * [TODOS](https://github.com/herculesJS/herculex-appx-examples/tree/master/quick-start/pages/todos): show how components and modules work
 
-## Quick Start
+## Turtoral
   
 ## TODO
 - [ ] add pageBeforeRender Action to do something before instance created
@@ -107,8 +111,9 @@ Simple, predictable, lightweight, high performance, developer friendly state man
 - [ ] examples & boilerplate
 - [ ] cli for static code check, and generate snipets
 - [ ] ide plugin
+- [ ] model based api middleware
 - [ ] test-utils & mock helper
-- [ ] dev-tools for ide, standalone
+- [ ] dev-tools for ide & standalone
 - [ ] modules (need deeply design)
 - [ ] error catcher plugin
 - [ ] refactory and tests, separate appx data setter as independent repo
