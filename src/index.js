@@ -43,7 +43,14 @@ class Store {
   when (predicate, effect) {
     const emitter = this.$emitter;
     if (!predicate) return Promise.reject();
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
+      const initialData = this.storeInstance ? this.storeInstance.data : {};
+      if (predicate(initialData)) {
+        if (effect) {
+          effect.call(this, initialData);
+        }
+        return resolve(initialData);
+      }
       const lisitener = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
         const newData = setStoreDataByState(this.storeInstance.data, state);
         const currentPageInstance = getCurrentPages().pop() || {};

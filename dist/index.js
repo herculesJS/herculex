@@ -103,7 +103,14 @@ var Store = function () {
 
     var emitter = this.$emitter;
     if (!predicate) return _ExternalPromise().reject();
-    return new (_ExternalPromise())(function (resolve, reject) {
+    return new (_ExternalPromise())(function (resolve) {
+      var initialData = _this.storeInstance ? _this.storeInstance.data : {};
+      if (predicate(initialData)) {
+        if (effect) {
+          effect.call(_this, initialData);
+        }
+        return resolve(initialData);
+      }
       var lisitener = emitter.addListener('updateState', function (_ref) {
         var state = _ref.state,
             mutation = _ref.mutation,
