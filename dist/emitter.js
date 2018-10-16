@@ -107,7 +107,7 @@ proto.addListener = function addListener(evt, listener) {
     }
   }
 
-  return this;
+  return listener;
 };
 
 proto.on = alias('addListener');
@@ -224,7 +224,6 @@ proto.emitEvent = function emitEvent(evt, args) {
 
       for (i = 0; i < listeners.length; i++) {
         listener = listeners[i];
-
         if (listener.once === true) {
           this.removeListener(evt, listener.listener);
         }

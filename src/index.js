@@ -33,10 +33,53 @@ class Store {
     });
     this.stateConfig = mapGettersToState(store.state || {}, this.getters, this);
     this.stateConfig.$global = this.connectGlobal ? global.getGlobalState(this.mapGlobals) : {};
+    this.subscribe = this.subscribe.bind(this);
+    this.when = this.when.bind(this);
   }
   getInstance() {
     return this.storeInstance;
   }
+  // 实现 mobx when
+  when (predicate, effect) {
+    const emitter = this.$emitter;
+    if (!predicate) return Promise.reject();
+    return new Promise((resolve, reject) => {
+      const lisitener = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+        const newData = setStoreDataByState(this.storeInstance.data, state);
+        const currentPageInstance = getCurrentPages().pop() || {};
+        const instanceView = this.storeInstance.$viewId || -1;
+        const currentView = currentPageInstance.$viewId || -1;
+        // 已经不在当前页面的不再触发
+        if (instanceView === currentView) {
+          if (predicate(newData)) {
+            if (effect) {
+              effect.call(this, newData);
+            }
+            resolve(newData);
+            emitter.removeListener('updateState', lisitener);
+          }
+        }
+      });
+    });
+  }
+  // 实现 store.subscribe
+  subscribe (subscriber, actionSubscriber) {
+    const emitter = this.$emitter;
+    emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+      const currentPageInstance = getCurrentPages().pop() || {};
+      const instanceView = this.storeInstance.$viewId || -1;
+      const currentView = currentPageInstance.$viewId || -1;
+      // 已经不在当前页面的不再触发
+      if (instanceView === currentView) {
+        subscriber(mutation, wrapState({ ...this.storeInstance.data }), wrapState({ ...prevState }));
+      }
+    });
+    if (actionSubscriber) {
+      emitter.addListener('dispatchAction', (action) => {
+        actionSubscriber(action);
+      });
+    }
+  };
   register(config) {
     const that = this;
     config.data = config.data || {};
@@ -109,6 +152,8 @@ class Store {
       this.$emitter = emitter;
       this.$globalEmitter = global.emitter;
       this.$message = global.messageManager;
+      this.$store = that;
+      this.$when = that.when;
         // 先榜上更新 store 的 监听器
       emitter.addListener('updateState', ({ state }) => {
         const newData = setStoreDataByState(this.data, state);
@@ -158,22 +203,7 @@ class Store {
           });
         });
       }
-      this.subscribe = function(subscriber, actionSubscriber) {
-        emitter.addListener('updateState', ({ state, mutation, prevState }) => {
-          const currentPageInstance = getCurrentPages().pop() || {};
-          const instanceView = onloadInstance.$viewId || -1;
-          const currentView = currentPageInstance.$viewId || -1;
-          // 已经不在当前页面的不再触发
-          if (instanceView === currentView) {
-            subscriber(mutation, wrapState({ ...onloadInstance.data }), wrapState({ ...prevState }));
-          }
-        });
-        if (actionSubscriber) {
-          emitter.addListener('dispatchAction', (action) => {
-            actionSubscriber(action);
-          });
-        }
-      };
+      this.subscribe = that.subscribe;
       // 设置页面 path 和 query
       const currentPageInstance = getCurrentPages().pop() || {};
       const currentPath = getPath(currentPageInstance.route);

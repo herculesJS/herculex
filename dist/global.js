@@ -180,7 +180,6 @@ var Global = function () {
 
   Global.prototype.getState = function getState(name) {
     var target = this.storeInstances[name];
-    // console.log('target', target);
     if (target) {
       var store = target.store;
 

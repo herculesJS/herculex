@@ -121,7 +121,6 @@ class Global {
   }
   getState(name) {
     const target = this.storeInstances[name];
-    // console.log('target', target);
     if (target) {
       const { store } = target;
       const instance = store.getInstance();

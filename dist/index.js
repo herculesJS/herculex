@@ -59,6 +59,10 @@ var _wrapState2 = _interopRequireDefault(_wrapState);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var _ExternalPromiseCached;
+
+function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromiseCached; if (typeof window !== 'undefined' && window.Promise && typeof window.Promise.resolve === 'function') { _ExternalPromiseCached = window.Promise; } else { _ExternalPromiseCached = require('babel-runtime/core-js/promise').default || require('babel-runtime/core-js/promise'); } return _ExternalPromiseCached; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function getPath(link) {
@@ -84,10 +88,69 @@ var Store = function () {
     });
     this.stateConfig = (0, _mapGettersToState2.default)(store.state || {}, this.getters, this);
     this.stateConfig.$global = this.connectGlobal ? _global2.default.getGlobalState(this.mapGlobals) : {};
+    this.subscribe = this.subscribe.bind(this);
+    this.when = this.when.bind(this);
   }
 
   Store.prototype.getInstance = function getInstance() {
     return this.storeInstance;
+  };
+  // 实现 mobx when
+
+
+  Store.prototype.when = function when(predicate, effect) {
+    var _this = this;
+
+    var emitter = this.$emitter;
+    if (!predicate) return _ExternalPromise().reject();
+    return new (_ExternalPromise())(function (resolve, reject) {
+      var lisitener = emitter.addListener('updateState', function (_ref) {
+        var state = _ref.state,
+            mutation = _ref.mutation,
+            prevState = _ref.prevState;
+
+        var newData = (0, _dataTransform.setStoreDataByState)(_this.storeInstance.data, state);
+        var currentPageInstance = getCurrentPages().pop() || {};
+        var instanceView = _this.storeInstance.$viewId || -1;
+        var currentView = currentPageInstance.$viewId || -1;
+        // 已经不在当前页面的不再触发
+        if (instanceView === currentView) {
+          if (predicate(newData)) {
+            if (effect) {
+              effect.call(_this, newData);
+            }
+            resolve(newData);
+            emitter.removeListener('updateState', lisitener);
+          }
+        }
+      });
+    });
+  };
+  // 实现 store.subscribe
+
+
+  Store.prototype.subscribe = function subscribe(subscriber, actionSubscriber) {
+    var _this2 = this;
+
+    var emitter = this.$emitter;
+    emitter.addListener('updateState', function (_ref2) {
+      var state = _ref2.state,
+          mutation = _ref2.mutation,
+          prevState = _ref2.prevState;
+
+      var currentPageInstance = getCurrentPages().pop() || {};
+      var instanceView = _this2.storeInstance.$viewId || -1;
+      var currentView = currentPageInstance.$viewId || -1;
+      // 已经不在当前页面的不再触发
+      if (instanceView === currentView) {
+        subscriber(mutation, (0, _wrapState2.default)(_extends({}, _this2.storeInstance.data)), (0, _wrapState2.default)(_extends({}, prevState)));
+      }
+    });
+    if (actionSubscriber) {
+      emitter.addListener('dispatchAction', function (action) {
+        actionSubscriber(action);
+      });
+    }
   };
 
   Store.prototype.register = function register(config) {
@@ -154,7 +217,7 @@ var Store = function () {
       }
     };
     config.onLoad = function () {
-      var _this = this;
+      var _this3 = this;
 
       var query = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
@@ -162,17 +225,19 @@ var Store = function () {
       this.$emitter = emitter;
       this.$globalEmitter = _global2.default.emitter;
       this.$message = _global2.default.messageManager;
+      this.$store = that;
+      this.$when = that.when;
       // 先榜上更新 store 的 监听器
-      emitter.addListener('updateState', function (_ref) {
-        var state = _ref.state;
+      emitter.addListener('updateState', function (_ref3) {
+        var state = _ref3.state;
 
-        var newData = (0, _dataTransform.setStoreDataByState)(_this.data, state);
+        var newData = (0, _dataTransform.setStoreDataByState)(_this3.data, state);
         var currentPageInstance = getCurrentPages().pop() || {};
         var instanceView = onloadInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
         if (instanceView === currentView) {
-          _this.setData(newData);
+          _this3.setData(newData);
         }
       });
       if (that.connectGlobal) {
@@ -195,36 +260,17 @@ var Store = function () {
           // 已经不在当前页面的不再触发
           if (instanceView !== currentView) return;
           emitter.emitEvent('updateState', {
-            state: _extends({}, _this.data, {
-              $global: _extends({}, _this.data.$global, _global2.default.getGlobalState(_this.mapGlobals))
+            state: _extends({}, _this3.data, {
+              $global: _extends({}, _this3.data.$global, _global2.default.getGlobalState(_this3.mapGlobals))
             }),
             mutation: {
               type: 'sync_global_data'
             },
-            prevState: _this.data
+            prevState: _this3.data
           });
         });
       }
-      this.subscribe = function (subscriber, actionSubscriber) {
-        emitter.addListener('updateState', function (_ref2) {
-          var state = _ref2.state,
-              mutation = _ref2.mutation,
-              prevState = _ref2.prevState;
-
-          var currentPageInstance = getCurrentPages().pop() || {};
-          var instanceView = onloadInstance.$viewId || -1;
-          var currentView = currentPageInstance.$viewId || -1;
-          // 已经不在当前页面的不再触发
-          if (instanceView === currentView) {
-            subscriber(mutation, (0, _wrapState2.default)(_extends({}, onloadInstance.data)), (0, _wrapState2.default)(_extends({}, prevState)));
-          }
-        });
-        if (actionSubscriber) {
-          emitter.addListener('dispatchAction', function (action) {
-            actionSubscriber(action);
-          });
-        }
-      };
+      this.subscribe = that.subscribe;
       // 设置页面 path 和 query
       var currentPageInstance = getCurrentPages().pop() || {};
       var currentPath = getPath(currentPageInstance.route);
@@ -291,17 +337,17 @@ var Store = function () {
       return _extends({}, config, {
         methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(this, that)),
         didMount: function didMount() {
-          var _this2 = this;
+          var _this4 = this;
 
           var initialData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
           this.setData(initialData);
           if (mapStateToProps) {
-            that.$emitter.addListener('updateState', function (_ref3) {
-              var _ref3$state = _ref3.state,
-                  state = _ref3$state === undefined ? {} : _ref3$state;
+            that.$emitter.addListener('updateState', function (_ref4) {
+              var _ref4$state = _ref4.state,
+                  state = _ref4$state === undefined ? {} : _ref4$state;
 
               var nextData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, state, config, mapGettersToProps);
-              _this2.setData(nextData);
+              _this4.setData(nextData);
             });
           }
           if (typeof _didMount === 'function') {
