@@ -18,6 +18,9 @@ const defaultConfig = {
 export default function connect(options) {
   const { mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace, data = {}, props = {} } = options;
   return function (config = defaultConfig) {
+    config.data = config.data || {};
+    config.props = config.props || {};
+    config.methods = config.methods || {};
     if (options.mapActionsToMethod) {
       mapActionsToMethod(options.mapActionsToMethod, false, config.methods);
     }
@@ -29,7 +32,8 @@ export default function connect(options) {
     }
     const _didMount = config.didMount;
     const key = namespace || instanceName;
-    Object.assign(config, { data, props });
+    Object.assign(config.data, data);
+    Object.assign(config.props, props);
     return {
       ...config,
       methods: {

@@ -54,6 +54,9 @@ function connect(options) {
   return function () {
     var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultConfig;
 
+    config.data = config.data || {};
+    config.props = config.props || {};
+    config.methods = config.methods || {};
     if (options.mapActionsToMethod) {
       (0, _mapHelpersToMethod.mapActionsToMethod)(options.mapActionsToMethod, false, config.methods);
     }
@@ -65,7 +68,8 @@ function connect(options) {
     }
     var _didMount = config.didMount;
     var key = namespace || instanceName;
-    (0, _assign2.default)(config, { data: data, props: props });
+    (0, _assign2.default)(config.data, data);
+    (0, _assign2.default)(config.props, props);
     return _extends({}, config, {
       methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config)),
       didMount: function didMount() {
