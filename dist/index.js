@@ -57,6 +57,12 @@ var _wrapState = require('./utils/wrapState');
 
 var _wrapState2 = _interopRequireDefault(_wrapState);
 
+var _default = require('./mixins/default');
+
+var _default2 = _interopRequireDefault(_default);
+
+var _util = require('util');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _ExternalPromiseCached;
@@ -89,6 +95,8 @@ var Store = function () {
     this.stateConfig = (0, _mapGettersToState2.default)(store.state || {}, this.getters, this);
     this.stateConfig.$global = this.connectGlobal ? _global2.default.getGlobalState(this.mapGlobals) : {};
     this.subscribe = this.subscribe.bind(this);
+    this.register = this.register.bind(this);
+    this.subscribeAction = this.subscribeAction.bind(this);
     this.when = this.when.bind(this);
   }
 
@@ -140,27 +148,50 @@ var Store = function () {
     var _this2 = this;
 
     var emitter = this.$emitter;
-    emitter.addListener('updateState', function (_ref2) {
-      var state = _ref2.state,
-          mutation = _ref2.mutation,
-          prevState = _ref2.prevState;
+    if (subscriber) {
+      emitter.addListener('updateState', function (_ref2) {
+        var state = _ref2.state,
+            mutation = _ref2.mutation,
+            prevState = _ref2.prevState;
 
-      var currentPageInstance = getCurrentPages().pop() || {};
-      var instanceView = _this2.storeInstance.$viewId || -1;
-      var currentView = currentPageInstance.$viewId || -1;
-      // 已经不在当前页面的不再触发
-      if (instanceView === currentView) {
-        subscriber(mutation, (0, _wrapState2.default)(_extends({}, _this2.storeInstance.data)), (0, _wrapState2.default)(_extends({}, prevState)));
-      }
-    });
+        var currentPageInstance = getCurrentPages().pop() || {};
+        var instanceView = _this2.storeInstance.$viewId || -1;
+        var currentView = currentPageInstance.$viewId || -1;
+        // 已经不在当前页面的不再触发
+        if (instanceView === currentView) {
+          subscriber(mutation, (0, _wrapState2.default)(_extends({}, _this2.storeInstance.data)), (0, _wrapState2.default)(_extends({}, prevState)));
+        }
+      });
+    }
     if (actionSubscriber) {
-      emitter.addListener('dispatchAction', function (action) {
-        actionSubscriber(action);
+      emitter.addListener('dispatchAction', function (action, next) {
+        actionSubscriber(action, next);
       });
     }
   };
 
-  Store.prototype.register = function register(config) {
+  Store.prototype.subscribeAction = function subscribeAction(actionSubscriber) {
+    var emitter = this.$emitter;
+    if (actionSubscriber) {
+      emitter.addListener('dispatchAction', function (action, next) {
+        actionSubscriber(action, next);
+      });
+    }
+  };
+
+  Store.prototype.use = function use() {
+    var option = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _default2.default;
+
+    if ((0, _util.isFunction)(option)) {
+      return option.call(this, this.register, _global2.default);
+    } else {
+      return this.register(option);
+    }
+  };
+
+  Store.prototype.register = function register() {
+    var config = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
     var that = this;
     config.data = config.data || {};
     (0, _assign2.default)(config.data, this.stateConfig, config.state);
@@ -278,6 +309,7 @@ var Store = function () {
         });
       }
       this.subscribe = that.subscribe;
+      this.subscribeAction = that.subscribeAction;
       // 设置页面 path 和 query
       var currentPageInstance = getCurrentPages().pop() || {};
       var currentPath = getPath(currentPageInstance.route);

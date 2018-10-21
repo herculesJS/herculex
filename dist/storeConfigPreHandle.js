@@ -38,9 +38,18 @@ function wrapMutation(config) {
 function configPreHandler(config) {
   // 防空
   config.state = config.state || {};
+  config.mutations = config.mutations || {};
+  config.actions = config.actions || {};
   // 给 mutaiton 包装是否需要 immer 操作
   if (config.mutations) {
     wrapMutation(config.mutations);
+  }
+  if (config.services) {
+    var serviceRenameObj = Object.keys(config.services).reduce(function (p, v) {
+      p['$service:' + v] = config.services[v];
+      return p;
+    }, {});
+    (0, _assign2.default)(config.actions, serviceRenameObj);
   }
   // 给插件提供修改初始配置的能力
   if (config.plugins) {

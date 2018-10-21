@@ -26,6 +26,10 @@ function isPromise(e) {
   return !!e && typeof e.then === 'function';
 };
 
+function isSymbol(d) {
+  return Object.prototype.toString.call(d) === '[object Symbol]';
+}
+
 function isFunc(fuc) {
   return Object.prototype.toString.call(fuc) === '[object Function]';
 }
@@ -65,6 +69,7 @@ module.exports = {
   isObject,
   isString,
   isEmptyObject,
+  isSymbol,
   isFunc,
   isPromise,
   canParseJson,

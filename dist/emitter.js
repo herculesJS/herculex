@@ -217,7 +217,6 @@ proto.emitEvent = function emitEvent(evt, args) {
   var i;
   var key;
   var response;
-
   for (key in listenersMap) {
     if (listenersMap.hasOwnProperty(key)) {
       listeners = listenersMap[key].slice(0);
@@ -232,6 +231,34 @@ proto.emitEvent = function emitEvent(evt, args) {
           this.removeListener(evt, listener.listener);
         }
       }
+    }
+  }
+
+  return this;
+};
+
+proto.emitEventChain = function emitEventWithNext(evt, args) {
+  var _this = this;
+
+  var listenersMap = this.getListenersAsObject(evt);
+  var listeners;
+  var key;
+  for (key in listenersMap) {
+    if (listenersMap.hasOwnProperty(key)) {
+      (function () {
+        listeners = listenersMap[key].slice(0);
+        var that = _this;
+        (function createNextFunc(i) {
+          var listener = listeners[i];
+          if (!listener) return function (d) {
+            return d;
+          };
+          if (listener.once === true) {
+            this.removeListener(evt, listener.listener);
+          }
+          return listener.listener.bind(that, args || [], createNextFunc(i + 1));
+        })(0)();
+      })();
     }
   }
 

@@ -4,7 +4,10 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-exports.default = function (instance, context) {
+exports.default = function () {
+  var instance = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var context = arguments[1];
+
   instance.getIn = function (path, initial) {
     var ctx = context ? context.data : this;
     var pathArray = (0, _is.isString)(path) ? [path] : path;
