@@ -2,7 +2,7 @@ import update from 'immutability-helper';
 
 import { getIn, setIn, deleteIn, compose, produce } from './utils/manipulate';
 import { isArray, isString } from './utils/is';
-export default function(instance, context) {
+export default function(instance = {}, context) {
   instance.getIn = function(path, initial) {
     const ctx = context ? context.data : this;
     const pathArray = isString(path) ? [path] : path;

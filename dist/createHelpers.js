@@ -32,20 +32,6 @@ var _ExternalPromiseCached;
 function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromiseCached; if (typeof window !== 'undefined' && window.Promise && typeof window.Promise.resolve === 'function') { _ExternalPromiseCached = window.Promise; } else { _ExternalPromiseCached = require('babel-runtime/core-js/promise').default || require('babel-runtime/core-js/promise'); } return _ExternalPromiseCached; }
 
 // 保证每次更改 store 是 immutable 的
-function mutationHandler(func, state, payload) {
-  if (!func) {
-    return payload;
-  }
-  if (func._shouldImmutable) {
-    return (0, _manipulate.produce)(state, function (draftState) {
-      func(draftState, payload);
-    });
-  }
-  var result = func(state, payload);
-  // 确保return的值是一个新对象
-  return result === state ? _extends({}, result) : result;
-}
-
 var innerMutation = {
   $setIn: function $setIn(s, d) {
     return (0, _manipulate.setIn)(s, d.path, d.value);
@@ -64,7 +50,25 @@ var innerMutation = {
     return next;
   }
 };
-function commitGlobal(type, payload) {
+function mutationHandler(func, state, payload, innerHelper) {
+  if (innerHelper) {
+    func = (0, _is.isFunc)(innerHelper) ? innerHelper : innerMutation[innerHelper];
+  }
+  if (!func) {
+    return payload;
+  }
+  var payloadWithHelper = (0, _wrapDataInstance2.default)(payload);
+  if (func._shouldImmutable) {
+    return (0, _manipulate.produce)(state, function (draftState) {
+      func(draftState, payloadWithHelper);
+    });
+  }
+  var result = func(state, payloadWithHelper);
+  // 确保return的值是一个新对象
+  return result === state ? _extends({}, result) : result;
+}
+
+function commitGlobal(type, payload, innerHelper) {
   var _global$globalStoreCo = _global2.default.globalStoreConfig.mutations,
       mutations = _global$globalStoreCo === undefined ? {} : _global$globalStoreCo;
 
@@ -75,7 +79,7 @@ function commitGlobal(type, payload) {
     payload = type;
     type = 'update';
   }
-  var finalMutation = mutationHandler(mutations[type], _global2.default.getGlobalState(), payload);
+  var finalMutation = mutationHandler(mutations[type], _global2.default.getGlobalState(), payload, innerHelper);
   var tmp = { state: finalMutation, mutation: { type: '$global:' + type, payload: payload } };
   _global2.default.emitter.emitEvent('updateState', tmp);
   // commit 的结果是一个同步行为
@@ -87,11 +91,11 @@ function dispatchGlobal(type, payload) {
       actions = _global$globalStoreCo2 === undefined ? {} : _global$globalStoreCo2;
 
   var actionFunc = actions[type];
-  if (!actionFunc) {
-    return console.error('not found an action', type, actions);
-  }
   var self = this;
-  _global2.default.emitter.emitEvent('dispatchAction', { type: type, payload: payload });
+  _global2.default.emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
+  if (!actionFunc) {
+    return console.warn('not found action', type, actions);
+  }
   var res = actionFunc.call(self, {
     commit: commitGlobal.bind(self),
     dispatch: dispatchGlobal.bind(self),
@@ -130,7 +134,7 @@ function dispatchGlobal(type, payload) {
       }
       return _global2.default.getState(instanceName);
     }
-  }, payload);
+  }, (0, _wrapDataInstance2.default)(payload));
   // 保证结果为一个 promise
   if (res instanceof _ExternalPromise()) {
     return res;
@@ -157,7 +161,7 @@ function createConnectHelpers(global, key) {
   return {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
-    commit: function commit(type, payload) {
+    commit: function commit(type, payload, innerHelper) {
       var finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
 
       var _ref = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey),
@@ -173,12 +177,12 @@ function createConnectHelpers(global, key) {
         payload = type;
         type = 'update';
       }
-      if (type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
         var realType = type.split(':').pop();
         return commitGlobal.call(instance, realType, payload);
       }
       var prevState = _extends({}, instance.data);
-      var finalMutation = mutationHandler(mutations[type], (0, _wrapDataInstance2.default)(instance.data), payload);
+      var finalMutation = mutationHandler(mutations[type], (0, _wrapDataInstance2.default)(instance.data), payload, innerHelper);
       instance.$emitter.emitEvent('updateState', { state: finalMutation, mutation: { type: type, payload: payload }, prevState: prevState });
       // commit 的结果是一个同步行为
       return instance.data;
@@ -196,7 +200,7 @@ function createConnectHelpers(global, key) {
       if (!type) {
         throw new Error('action type not found');
       }
-      if (type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
         var realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }
@@ -209,7 +213,7 @@ function createConnectHelpers(global, key) {
         throw new Error('action not found');
       }
       var self = this;
-      instance.$emitter.emitEvent('dispatchAction', { type: type, payload: payload });
+      instance.$emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
       var res = actionFunc.call(self, {
         commit: this.commit.bind(self),
         dispatch: this.dispatch.bind(self),
@@ -250,7 +254,7 @@ function createConnectHelpers(global, key) {
         select: function select(filter) {
           return filter((0, _wrapDataInstance2.default)(_extends({}, instance.data)));
         }
-      }, payload);
+      }, (0, _wrapDataInstance2.default)(payload));
       // 保证结果为一个 promise
       if (res instanceof _ExternalPromise()) {
         return res;
@@ -265,7 +269,7 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
   return {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
-    commit: function commit(type, payload) {
+    commit: function commit(type, payload, innerHelper) {
       if (!type) {
         throw new Error('not found ' + type + ' action');
       }
@@ -273,12 +277,12 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
         payload = type;
         type = 'update';
       }
-      if (type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
         var realType = type.split(':').pop();
         return commitGlobal.call(this, realType, payload);
       }
       var prevState = _extends({}, this.data);
-      var finalMutation = mutationHandler(mutations[type], (0, _wrapDataInstance2.default)(this.data), payload);
+      var finalMutation = mutationHandler(mutations[type], (0, _wrapDataInstance2.default)(this.data), payload, innerHelper);
       // 触发更新机制
       emitter.emitEvent('updateState', { state: finalMutation, mutation: { type: type, payload: payload }, prevState: prevState });
       // commit 的结果是一个同步行为，返回值
@@ -289,16 +293,16 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
       if (!type) {
         throw new Error('action type not found');
       }
-      if (type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
         var realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }
       var actionFunc = actionCache[type];
-      if (!actionFunc) {
-        return console.error('not found an action', type, actions);
-      }
       var self = this;
-      emitter.emitEvent('dispatchAction', { type: type, payload: payload });
+      emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
+      if (!actionFunc) {
+        return console.warn('not found action', type, actions);
+      }
       var res = actionFunc.call(self, {
         commit: this.commit.bind(self),
         dispatch: this.dispatch.bind(self),
@@ -339,7 +343,7 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
         select: function select(filter) {
           return filter((0, _wrapDataInstance2.default)(_extends({}, self.data)));
         }
-      }, payload);
+      }, (0, _wrapDataInstance2.default)(payload));
       // 保证结果为一个 promise
       if (res instanceof _ExternalPromise()) {
         return res;

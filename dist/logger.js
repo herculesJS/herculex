@@ -27,9 +27,12 @@ function logger() {
       console.info('%c ' + store.instanceName + 'Store:next state', 'color: #4CAF50; font-weight: bold', state);
     }, function () {
       var action = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      var next = arguments[1];
 
+      var type = (0, _is.isSymbol)(action.type) ? action.type.toString() : action.type;
       var payload = (0, _is.isString)(action.payload) ? action.payload : _extends({}, action.payload);
-      console.info('%c ' + store.instanceName + 'Store:action ' + action.type + ' dispatching', 'color: #9E9E9E; font-weight: bold', payload);
+      console.info('%c ' + store.instanceName + 'Store:action ' + type + ' dispatching', 'color: #9E9E9E; font-weight: bold', payload);
+      next();
     });
   };
 }

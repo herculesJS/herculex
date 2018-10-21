@@ -11,6 +11,8 @@ import GlobalStore from './provider';
 import { mapActionsToMethod, mapMutationsToMethod } from './mapHelpersToMethod';
 import configPreHandler from './storeConfigPreHandle';
 import wrapState from './utils/wrapState';
+import defaultMixin from './mixins/default';
+import { isFunction } from 'util';
 
 function getPath(link) {
   return isString(link) && link.split('/')[1];
@@ -34,6 +36,8 @@ class Store {
     this.stateConfig = mapGettersToState(store.state || {}, this.getters, this);
     this.stateConfig.$global = this.connectGlobal ? global.getGlobalState(this.mapGlobals) : {};
     this.subscribe = this.subscribe.bind(this);
+    this.register = this.register.bind(this);
+    this.subscribeAction = this.subscribeAction.bind(this);
     this.when = this.when.bind(this);
   }
   getInstance() {
@@ -72,22 +76,39 @@ class Store {
   // 实现 store.subscribe
   subscribe (subscriber, actionSubscriber) {
     const emitter = this.$emitter;
-    emitter.addListener('updateState', ({ state, mutation, prevState }) => {
-      const currentPageInstance = getCurrentPages().pop() || {};
-      const instanceView = this.storeInstance.$viewId || -1;
-      const currentView = currentPageInstance.$viewId || -1;
-      // 已经不在当前页面的不再触发
-      if (instanceView === currentView) {
-        subscriber(mutation, wrapState({ ...this.storeInstance.data }), wrapState({ ...prevState }));
-      }
-    });
+    if (subscriber) {
+      emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+        const currentPageInstance = getCurrentPages().pop() || {};
+        const instanceView = this.storeInstance.$viewId || -1;
+        const currentView = currentPageInstance.$viewId || -1;
+        // 已经不在当前页面的不再触发
+        if (instanceView === currentView) {
+          subscriber(mutation, wrapState({ ...this.storeInstance.data }), wrapState({ ...prevState }));
+        }
+      });
+    }
     if (actionSubscriber) {
-      emitter.addListener('dispatchAction', (action) => {
-        actionSubscriber(action);
+      emitter.addListener('dispatchAction', (action, next) => {
+        actionSubscriber(action, next);
       });
     }
   };
-  register(config) {
+  subscribeAction(actionSubscriber) {
+    const emitter = this.$emitter;
+    if (actionSubscriber) {
+      emitter.addListener('dispatchAction', (action, next) => {
+        actionSubscriber(action, next);
+      });
+    }
+  }
+  use(option = defaultMixin) {
+    if (isFunction(option)) {
+      return option.call(this, this.register, global);
+    } else {
+      return this.register(option);
+    }
+  }
+  register(config = {}) {
     const that = this;
     config.data = config.data || {};
     Object.assign(config.data, this.stateConfig, config.state);
@@ -211,6 +232,7 @@ class Store {
         });
       }
       this.subscribe = that.subscribe;
+      this.subscribeAction = that.subscribeAction;
       // 设置页面 path 和 query
       const currentPageInstance = getCurrentPages().pop() || {};
       const currentPath = getPath(currentPageInstance.route);
