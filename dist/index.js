@@ -63,6 +63,8 @@ var _default2 = _interopRequireDefault(_default);
 
 var _util = require('util');
 
+require('./polyfill/array.prototype.includes');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var _ExternalPromiseCached;
