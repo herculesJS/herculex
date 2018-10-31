@@ -1,6 +1,6 @@
 {
   "name": "herculex",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Simple, predictable, developer friendly state management for alipay mini-program",
   "main": "dist/index.js",
   "scripts": {

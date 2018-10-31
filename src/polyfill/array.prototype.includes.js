@@ -1,5 +1,6 @@
 // https://tc39.github.io/ecma262/#sec-array.prototype.includes
 if (!Array.prototype.includes) {
+  console.log('add polyfill includes');
   Object.defineProperty(Array.prototype, 'includes', {
     value: function(searchElement, fromIndex) {
       if (this == null) {

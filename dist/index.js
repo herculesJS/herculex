@@ -73,6 +73,8 @@ function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromis
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// import './polyfill/array.prototype.find';
+
 function getPath(link) {
   return (0, _is.isString)(link) && link.split('/')[1];
 }
