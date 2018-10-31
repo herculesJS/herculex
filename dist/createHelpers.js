@@ -31,6 +31,10 @@ var _ExternalPromiseCached;
 
 function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromiseCached; if (typeof window !== 'undefined' && window.Promise && typeof window.Promise.resolve === 'function') { _ExternalPromiseCached = window.Promise; } else { _ExternalPromiseCached = require('babel-runtime/core-js/promise').default || require('babel-runtime/core-js/promise'); } return _ExternalPromiseCached; }
 
+function startsWith(data, search, pos) {
+  return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+};
+
 // 保证每次更改 store 是 immutable 的
 var innerMutation = {
   $setIn: function $setIn(s, d) {
@@ -177,7 +181,7 @@ function createConnectHelpers(global, key) {
         payload = type;
         type = 'update';
       }
-      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
         var realType = type.split(':').pop();
         return commitGlobal.call(instance, realType, payload);
       }
@@ -200,7 +204,7 @@ function createConnectHelpers(global, key) {
       if (!type) {
         throw new Error('action type not found');
       }
-      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
         var realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }
@@ -277,7 +281,7 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
         payload = type;
         type = 'update';
       }
-      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
         var realType = type.split(':').pop();
         return commitGlobal.call(this, realType, payload);
       }
@@ -293,7 +297,7 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
       if (!type) {
         throw new Error('action type not found');
       }
-      if ((0, _is.isString)(type) && type.startsWith('$global:')) {
+      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
         var realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }

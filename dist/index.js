@@ -87,6 +87,7 @@ var Store = function () {
       connectGlobal: store.connectGlobal,
       mapGlobals: store.mapGlobals,
       actions: store.actions,
+      methods: store.methods || {},
       mutations: store.mutations || {},
       plugins: store.plugins || [],
       getters: store.getters || {},

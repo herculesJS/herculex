@@ -18,6 +18,6 @@ export default function(register) {
       this.dispatch('pageOnUnload', data);
     }
   };
-  mapMutationsToMethod(this.actions, config);
+  mapMutationsToMethod(this.methods, config);
   return register(config);
 }

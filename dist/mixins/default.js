@@ -22,7 +22,7 @@ exports.default = function (register) {
       this.dispatch('pageOnUnload', data);
     }
   };
-  (0, _mapHelpersToMethod.mapMutationsToMethod)(this.actions, config);
+  (0, _mapHelpersToMethod.mapMutationsToMethod)(this.methods, config);
   return register(config);
 };
 

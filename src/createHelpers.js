@@ -2,6 +2,11 @@ import { setIn, update, produce, deleteIn } from './utils/manipulate';
 import { isObject, isFunc, isString } from './utils/is';
 import global from './global';
 import wrapDataInstance from './wrapDataInstance';
+
+function startsWith(data, search, pos) {
+  return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+};
+
 // 保证每次更改 store 是 immutable 的
 const innerMutation = {
   $setIn: (s, d) => setIn(s, d.path, d.value),
@@ -128,7 +133,7 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
         payload = type;
         type = 'update';
       }
-      if (isString(type) && type.startsWith('$global:')) {
+      if (isString(type) && startsWith(type, '$global:')) {
         const realType = type.split(':').pop();
         return commitGlobal.call(instance, realType, payload);
       }
@@ -148,7 +153,7 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
       if (!type) {
         throw new Error('action type not found');
       }
-      if (isString(type) && type.startsWith('$global:')) {
+      if (isString(type) && startsWith(type, '$global:')) {
         const realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }
@@ -221,7 +226,7 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
         payload = type;
         type = 'update';
       }
-      if (isString(type) && type.startsWith('$global:')) {
+      if (isString(type) && startsWith(type, '$global:')) {
         const realType = type.split(':').pop();
         return commitGlobal.call(this, realType, payload);
       }
@@ -237,7 +242,7 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
       if (!type) {
         throw new Error('action type not found');
       }
-      if (isString(type) && type.startsWith('$global:')) {
+      if (isString(type) && startsWith(type, '$global:')) {
         const realType = type.split(':').pop();
         return dispatchGlobal.call(this, realType, payload);
       }
