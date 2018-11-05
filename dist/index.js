@@ -63,7 +63,7 @@ var _default2 = _interopRequireDefault(_default);
 
 var _util = require('util');
 
-require('./polyfill/array.prototype.includes');
+require('./polyfill/index');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -72,8 +72,6 @@ var _ExternalPromiseCached;
 function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromiseCached; if (typeof window !== 'undefined' && window.Promise && typeof window.Promise.resolve === 'function') { _ExternalPromiseCached = window.Promise; } else { _ExternalPromiseCached = require('babel-runtime/core-js/promise').default || require('babel-runtime/core-js/promise'); } return _ExternalPromiseCached; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// import './polyfill/array.prototype.find';
 
 function getPath(link) {
   return (0, _is.isString)(link) && link.split('/')[1];
