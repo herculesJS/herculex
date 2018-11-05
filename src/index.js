@@ -13,8 +13,7 @@ import configPreHandler from './storeConfigPreHandle';
 import wrapState from './utils/wrapState';
 import defaultMixin from './mixins/default';
 import { isFunction } from 'util';
-import './polyfill/array.prototype.includes';
-// import './polyfill/array.prototype.find';
+import './polyfill/index';
 
 function getPath(link) {
   return isString(link) && link.split('/')[1];
