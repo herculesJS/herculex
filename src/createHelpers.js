@@ -7,6 +7,18 @@ function startsWith(data, search, pos) {
   return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
 };
 
+function dispatchActionPromise(instance, args) {
+  return new Promise((resolve, reject) => {
+    try {
+      instance.emitEventChain('dispatchAction', args, d => {
+        resolve(d);
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 // 保证每次更改 store 是 immutable 的
 const innerMutation = {
   $setIn: (s, d) => setIn(s, d.path, d.value),
@@ -20,7 +32,7 @@ const innerMutation = {
 };
 function mutationHandler (func, state, payload, innerHelper) {
   if (innerHelper) {
-    func = isFunc(innerHelper) ? innerHelper : innerMutation[innerHelper];
+    func = isFunc(innerHelper) ? func || innerHelper : func || innerMutation[innerHelper];
   }
   if (!func) {
     return payload;
@@ -54,17 +66,19 @@ function commitGlobal(type, payload, innerHelper) {
   return global.getGlobalState();
 }
 
-function dispatchGlobal(type, payload) {
+async function dispatchGlobal(type, payload) {
   const {
     actions = {}
   } = global.globalStoreConfig;
   const actionFunc = actions[type];
   const self = this;
-  global.emitter.emitEventChain('dispatchAction', { type, payload });
+  let res = {};
+  res = await dispatchActionPromise(global.emitter, { type, payload });
   if (!actionFunc) {
-    return console.warn('not found action', type, actions);
+    console.warn('not found action', type, actions);
+    return Promise.resolve(res);
   }
-  const res = actionFunc.call(self, {
+  res = await actionFunc.call(self, {
     commit: commitGlobal.bind(self),
     dispatch: dispatchGlobal.bind(self),
     message: global.messageManager,
@@ -143,7 +157,7 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
       // commit 的结果是一个同步行为
       return instance.data;
     },
-    dispatch(type, payload) {
+    async dispatch(type, payload) {
       const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
       const {
         instance,
@@ -162,12 +176,14 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
       Object.assign(actions, config.actions);
 
       const actionFunc = actions[type];
-      if (!actionFunc) {
-        throw new Error('action not found');
-      }
       const self = this;
-      instance.$emitter.emitEventChain('dispatchAction', { type, payload });
-      const res = actionFunc.call(self, {
+      let res = {};
+      res = await dispatchActionPromise(instance.$emitter, { type, payload });
+      if (!actionFunc) {
+        console.warn('not found action', type, actions);
+        return Promise.resolve(res);
+      }
+      res = await actionFunc.call(self, {
         commit: this.commit.bind(self),
         dispatch: this.dispatch.bind(self),
         message: global.messageManager,
@@ -237,7 +253,7 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
       // commit 的结果是一个同步行为，返回值
       return this.data;
     },
-    dispatch(type, payload) {
+    async dispatch(type, payload) {
       const actionCache = Object.assign({}, actions, this);
       if (!type) {
         throw new Error('action type not found');
@@ -248,11 +264,13 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
       }
       const actionFunc = actionCache[type];
       const self = this;
-      emitter.emitEventChain('dispatchAction', { type, payload });
+      let res = {};
+      res = await dispatchActionPromise(emitter, { type, payload });
       if (!actionFunc) {
-        return console.warn('not found action', type, actions);
+        console.warn('not found action', type, actions);
+        return Promise.resolve(res);
       }
-      const res = actionFunc.call(self, {
+      res = await actionFunc.call(self, {
         commit: this.commit.bind(self),
         dispatch: this.dispatch.bind(self),
         dispatchGlobal: dispatchGlobal.bind(self),

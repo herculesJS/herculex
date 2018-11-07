@@ -240,6 +240,10 @@ proto.emitEvent = function emitEvent(evt, args) {
 proto.emitEventChain = function emitEventWithNext(evt, args) {
   var _this = this;
 
+  var cb = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function (d) {
+    return d;
+  };
+
   var listenersMap = this.getListenersAsObject(evt);
   var listeners;
   var key;
@@ -247,12 +251,22 @@ proto.emitEventChain = function emitEventWithNext(evt, args) {
     if (listenersMap.hasOwnProperty(key)) {
       (function () {
         listeners = listenersMap[key].slice(0);
+        listeners.push({
+          listener: function listener(action, next) {
+            var last = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+            // 最后一个回调获取最终上一次的结果
+            cb(last);
+          }
+        });
         var that = _this;
         (function createNextFunc(i) {
           var listener = listeners[i];
-          if (!listener) return function (d) {
-            return d;
-          };
+          if (!listener) {
+            return function (d) {
+              return d;
+            };
+          }
           if (listener.once === true) {
             this.removeListener(evt, listener.listener);
           }
@@ -261,7 +275,6 @@ proto.emitEventChain = function emitEventWithNext(evt, args) {
       })();
     }
   }
-
   return this;
 };
 

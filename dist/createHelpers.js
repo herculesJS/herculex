@@ -35,6 +35,18 @@ function startsWith(data, search, pos) {
   return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
 };
 
+function dispatchActionPromise(instance, args) {
+  return new (_ExternalPromise())(function (resolve, reject) {
+    try {
+      instance.emitEventChain('dispatchAction', args, function (d) {
+        resolve(d);
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 // 保证每次更改 store 是 immutable 的
 var innerMutation = {
   $setIn: function $setIn(s, d) {
@@ -56,7 +68,7 @@ var innerMutation = {
 };
 function mutationHandler(func, state, payload, innerHelper) {
   if (innerHelper) {
-    func = (0, _is.isFunc)(innerHelper) ? innerHelper : innerMutation[innerHelper];
+    func = (0, _is.isFunc)(innerHelper) ? func || innerHelper : func || innerMutation[innerHelper];
   }
   if (!func) {
     return payload;
@@ -91,59 +103,76 @@ function commitGlobal(type, payload, innerHelper) {
 }
 
 function dispatchGlobal(type, payload) {
-  var _global$globalStoreCo2 = _global2.default.globalStoreConfig.actions,
-      actions = _global$globalStoreCo2 === undefined ? {} : _global$globalStoreCo2;
+  return new (_ExternalPromise())(function ($return, $error) {
+    var _global$globalStoreCo2, actions, actionFunc, self, res;
 
-  var actionFunc = actions[type];
-  var self = this;
-  _global2.default.emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
-  if (!actionFunc) {
-    return console.warn('not found action', type, actions);
-  }
-  var res = actionFunc.call(self, {
-    commit: commitGlobal.bind(self),
-    dispatch: dispatchGlobal.bind(self),
-    message: _global2.default.messageManager,
-    put: function put(type) {
-      var func = actions[type];
-      if (!func) {
-        throw new Error('not found ' + type + ' action');
-      }
-      if (func) {
-        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          args[_key - 1] = arguments[_key];
+    _global$globalStoreCo2 = _global2.default.globalStoreConfig.actions, actions = _global$globalStoreCo2 === undefined ? {} : _global$globalStoreCo2;
+
+    actionFunc = actions[type];
+    self = this;
+    res = {};
+    return _ExternalPromise().resolve(dispatchActionPromise(_global2.default.emitter, { type: type, payload: payload })).then(function ($await_2) {
+      try {
+        res = $await_2;
+        if (!actionFunc) {
+          console.warn('not found action', type, actions);
+          return $return(_ExternalPromise().resolve(res));
         }
+        return _ExternalPromise().resolve(actionFunc.call(self, {
+          commit: commitGlobal.bind(self),
+          dispatch: dispatchGlobal.bind(self),
+          message: _global2.default.messageManager,
+          put: function put(type) {
+            var func = actions[type];
+            if (!func) {
+              throw new Error('not found ' + type + ' action');
+            }
+            if (func) {
+              for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+                args[_key - 1] = arguments[_key];
+              }
 
-        func.apply(self, args);
+              func.apply(self, args);
+            }
+          },
+          get state() {
+            return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
+          },
+          get getters() {
+            return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState().$getters);
+          },
+          get global() {
+            return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
+          },
+          getRef: function getRef(name) {
+            return _global2.default.getComponentRef(name);
+          },
+          select: function select(filter) {
+            return filter((0, _wrapDataInstance2.default)(_extends({}, _global2.default.getGlobalState())));
+          },
+          getState: function getState(instanceName) {
+            if (!instanceName) {
+              return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
+            }
+            return _global2.default.getState(instanceName);
+          }
+        }, (0, _wrapDataInstance2.default)(payload))).then(function ($await_3) {
+          try {
+            res = $await_3;
+            // 保证结果为一个 promise
+            if (res instanceof _ExternalPromise()) {
+              return $return(res);
+            }
+            return $return(_ExternalPromise().resolve(res));
+          } catch ($boundEx) {
+            return $error($boundEx);
+          }
+        }.bind(this), $error);
+      } catch ($boundEx) {
+        return $error($boundEx);
       }
-    },
-    get state() {
-      return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
-    },
-    get getters() {
-      return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState().$getters);
-    },
-    get global() {
-      return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
-    },
-    getRef: function getRef(name) {
-      return _global2.default.getComponentRef(name);
-    },
-    select: function select(filter) {
-      return filter((0, _wrapDataInstance2.default)(_extends({}, _global2.default.getGlobalState())));
-    },
-    getState: function getState(instanceName) {
-      if (!instanceName) {
-        return (0, _wrapDataInstance2.default)(_global2.default.getGlobalState());
-      }
-      return _global2.default.getState(instanceName);
-    }
-  }, (0, _wrapDataInstance2.default)(payload));
-  // 保证结果为一个 promise
-  if (res instanceof _ExternalPromise()) {
-    return res;
-  }
-  return _ExternalPromise().resolve(res);
+    }.bind(this), $error);
+  }.bind(this));
 }
 
 function getConfigFromGlobal(global, key) {
@@ -192,78 +221,90 @@ function createConnectHelpers(global, key) {
       return instance.data;
     },
     dispatch: function dispatch(type, payload) {
-      var finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
+      return new (_ExternalPromise())(function ($return, $error) {
+        var finalKey, _ref2, instance, _ref2$mutations, mutations, _ref2$actions, actions, realType, actionFunc, self, res;
 
-      var _ref2 = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey),
-          instance = _ref2.instance,
-          _ref2$mutations = _ref2.mutations,
-          mutations = _ref2$mutations === undefined ? {} : _ref2$mutations,
-          _ref2$actions = _ref2.actions,
-          actions = _ref2$actions === undefined ? {} : _ref2$actions;
+        finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
+        _ref2 = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey), instance = _ref2.instance, _ref2$mutations = _ref2.mutations, mutations = _ref2$mutations === undefined ? {} : _ref2$mutations, _ref2$actions = _ref2.actions, actions = _ref2$actions === undefined ? {} : _ref2$actions;
 
-      if (!type) {
-        throw new Error('action type not found');
-      }
-      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
-        var realType = type.split(':').pop();
-        return dispatchGlobal.call(this, realType, payload);
-      }
-      // 获取目标 instance 的数据
-      (0, _assign2.default)(mutations, config.mutations);
-      (0, _assign2.default)(actions, config.actions);
-
-      var actionFunc = actions[type];
-      if (!actionFunc) {
-        throw new Error('action not found');
-      }
-      var self = this;
-      instance.$emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
-      var res = actionFunc.call(self, {
-        commit: this.commit.bind(self),
-        dispatch: this.dispatch.bind(self),
-        message: global.messageManager,
-        dispatchGlobal: dispatchGlobal.bind(self),
-        commitGlobal: commitGlobal.bind(self),
-        put: function put(type) {
-          var func = actions[type];
-          if (!func) {
-            throw new Error('not found ' + type + ' action');
-          }
-          if (func) {
-            for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-              args[_key2 - 1] = arguments[_key2];
-            }
-
-            func.apply(self, args);
-          }
-        },
-        get state() {
-          return (0, _wrapDataInstance2.default)(instance.data, self);
-        },
-        get getters() {
-          return (0, _wrapDataInstance2.default)(instance.data.$getters, self);
-        },
-        get global() {
-          return (0, _wrapDataInstance2.default)(instance.data.$global);
-        },
-        getRef: function getRef(name) {
-          return global.getComponentRef(name);
-        },
-        getState: function getState(instanceName) {
-          if (!instanceName) {
-            return (0, _wrapDataInstance2.default)(instance.data, self);
-          }
-          return global.getState(instanceName);
-        },
-        select: function select(filter) {
-          return filter((0, _wrapDataInstance2.default)(_extends({}, instance.data)));
+        if (!type) {
+          return $error(new Error('action type not found'));
         }
-      }, (0, _wrapDataInstance2.default)(payload));
-      // 保证结果为一个 promise
-      if (res instanceof _ExternalPromise()) {
-        return res;
-      }
-      return _ExternalPromise().resolve(res);
+        if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
+          realType = type.split(':').pop();
+          return $return(dispatchGlobal.call(this, realType, payload));
+        }
+        // 获取目标 instance 的数据
+        (0, _assign2.default)(mutations, config.mutations);
+        (0, _assign2.default)(actions, config.actions);
+
+        actionFunc = actions[type];
+        self = this;
+        res = {};
+        return _ExternalPromise().resolve(dispatchActionPromise(instance.$emitter, { type: type, payload: payload })).then(function ($await_4) {
+          try {
+            res = $await_4;
+            if (!actionFunc) {
+              console.warn('not found action', type, actions);
+              return $return(_ExternalPromise().resolve(res));
+            }
+            return _ExternalPromise().resolve(actionFunc.call(self, {
+              commit: this.commit.bind(self),
+              dispatch: this.dispatch.bind(self),
+              message: global.messageManager,
+              dispatchGlobal: dispatchGlobal.bind(self),
+              commitGlobal: commitGlobal.bind(self),
+              put: function put(type) {
+                var func = actions[type];
+                if (!func) {
+                  throw new Error('not found ' + type + ' action');
+                }
+                if (func) {
+                  for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+                    args[_key2 - 1] = arguments[_key2];
+                  }
+
+                  func.apply(self, args);
+                }
+              },
+              get state() {
+                return (0, _wrapDataInstance2.default)(instance.data, self);
+              },
+              get getters() {
+                return (0, _wrapDataInstance2.default)(instance.data.$getters, self);
+              },
+              get global() {
+                return (0, _wrapDataInstance2.default)(instance.data.$global);
+              },
+              getRef: function getRef(name) {
+                return global.getComponentRef(name);
+              },
+              getState: function getState(instanceName) {
+                if (!instanceName) {
+                  return (0, _wrapDataInstance2.default)(instance.data, self);
+                }
+                return global.getState(instanceName);
+              },
+              select: function select(filter) {
+                return filter((0, _wrapDataInstance2.default)(_extends({}, instance.data)));
+              }
+            }, (0, _wrapDataInstance2.default)(payload))).then(function ($await_5) {
+              try {
+                res = $await_5;
+                // 保证结果为一个 promise
+                if (res instanceof _ExternalPromise()) {
+                  return $return(res);
+                }
+                return $return(_ExternalPromise().resolve(res));
+              } catch ($boundEx) {
+                return $error($boundEx);
+              }
+            }.bind(this), $error);
+          } catch ($boundEx) {
+            return $error($boundEx);
+          }
+        }.bind(this), $error);
+      }.bind(this));
     }
   };
 }
@@ -293,66 +334,84 @@ function createHelpers(actions, mutationsObj, emitter, getInstance) {
       return this.data;
     },
     dispatch: function dispatch(type, payload) {
-      var actionCache = (0, _assign2.default)({}, actions, this);
-      if (!type) {
-        throw new Error('action type not found');
-      }
-      if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
-        var realType = type.split(':').pop();
-        return dispatchGlobal.call(this, realType, payload);
-      }
-      var actionFunc = actionCache[type];
-      var self = this;
-      emitter.emitEventChain('dispatchAction', { type: type, payload: payload });
-      if (!actionFunc) {
-        return console.warn('not found action', type, actions);
-      }
-      var res = actionFunc.call(self, {
-        commit: this.commit.bind(self),
-        dispatch: this.dispatch.bind(self),
-        dispatchGlobal: dispatchGlobal.bind(self),
-        commitGlobal: commitGlobal.bind(self),
-        message: _global2.default.messageManager,
-        put: function put(type) {
-          var func = actionCache[type];
-          if (!func) {
-            throw new Error('not found ' + type + ' action');
-          }
-          if (func) {
-            for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-              args[_key3 - 1] = arguments[_key3];
-            }
+      return new (_ExternalPromise())(function ($return, $error) {
+        var actionCache, realType, actionFunc, self, res;
 
-            func.apply(self, args);
-          }
-        },
-        get state() {
-          return (0, _wrapDataInstance2.default)(self.data, self);
-        },
-        get getters() {
-          return (0, _wrapDataInstance2.default)(self.data.$getters, self);
-        },
-        get global() {
-          return (0, _wrapDataInstance2.default)(self.data.$global);
-        },
-        getRef: function getRef(name) {
-          return _global2.default.getComponentRef(name);
-        },
-        getState: function getState(instanceName) {
-          if (!instanceName) {
-            return (0, _wrapDataInstance2.default)(self.data, self);
-          }
-          return _global2.default.getState(instanceName);
-        },
-        select: function select(filter) {
-          return filter((0, _wrapDataInstance2.default)(_extends({}, self.data)));
+        actionCache = (0, _assign2.default)({}, actions, this);
+        if (!type) {
+          return $error(new Error('action type not found'));
         }
-      }, (0, _wrapDataInstance2.default)(payload));
-      // 保证结果为一个 promise
-      if (res instanceof _ExternalPromise()) {
-        return res;
-      }
-      return _ExternalPromise().resolve(res);
+        if ((0, _is.isString)(type) && startsWith(type, '$global:')) {
+          realType = type.split(':').pop();
+          return $return(dispatchGlobal.call(this, realType, payload));
+        }
+        actionFunc = actionCache[type];
+        self = this;
+        res = {};
+        return _ExternalPromise().resolve(dispatchActionPromise(emitter, { type: type, payload: payload })).then(function ($await_6) {
+          try {
+            res = $await_6;
+            if (!actionFunc) {
+              console.warn('not found action', type, actions);
+              return $return(_ExternalPromise().resolve(res));
+            }
+            return _ExternalPromise().resolve(actionFunc.call(self, {
+              commit: this.commit.bind(self),
+              dispatch: this.dispatch.bind(self),
+              dispatchGlobal: dispatchGlobal.bind(self),
+              commitGlobal: commitGlobal.bind(self),
+              message: _global2.default.messageManager,
+              put: function put(type) {
+                var func = actionCache[type];
+                if (!func) {
+                  throw new Error('not found ' + type + ' action');
+                }
+                if (func) {
+                  for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
+                    args[_key3 - 1] = arguments[_key3];
+                  }
+
+                  func.apply(self, args);
+                }
+              },
+              get state() {
+                return (0, _wrapDataInstance2.default)(self.data, self);
+              },
+              get getters() {
+                return (0, _wrapDataInstance2.default)(self.data.$getters, self);
+              },
+              get global() {
+                return (0, _wrapDataInstance2.default)(self.data.$global);
+              },
+              getRef: function getRef(name) {
+                return _global2.default.getComponentRef(name);
+              },
+              getState: function getState(instanceName) {
+                if (!instanceName) {
+                  return (0, _wrapDataInstance2.default)(self.data, self);
+                }
+                return _global2.default.getState(instanceName);
+              },
+              select: function select(filter) {
+                return filter((0, _wrapDataInstance2.default)(_extends({}, self.data)));
+              }
+            }, (0, _wrapDataInstance2.default)(payload))).then(function ($await_7) {
+              try {
+                res = $await_7;
+                // 保证结果为一个 promise
+                if (res instanceof _ExternalPromise()) {
+                  return $return(res);
+                }
+                return $return(_ExternalPromise().resolve(res));
+              } catch ($boundEx) {
+                return $error($boundEx);
+              }
+            }.bind(this), $error);
+          } catch ($boundEx) {
+            return $error($boundEx);
+          }
+        }.bind(this), $error);
+      }.bind(this));
     }
   };
 }

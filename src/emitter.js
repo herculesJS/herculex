@@ -232,17 +232,25 @@ proto.emitEvent = function emitEvent(evt, args) {
   return this;
 };
 
-proto.emitEventChain = function emitEventWithNext(evt, args) {
+proto.emitEventChain = function emitEventWithNext(evt, args, cb = d => d) {
   var listenersMap = this.getListenersAsObject(evt);
   var listeners;
   var key;
   for (key in listenersMap) {
     if (listenersMap.hasOwnProperty(key)) {
       listeners = listenersMap[key].slice(0);
+      listeners.push({
+        listener: function(action, next, last = {}) {
+          // 最后一个回调获取最终上一次的结果
+          cb(last);
+        }
+      });
       const that = this;
       (function createNextFunc(i) {
         const listener = listeners[i];
-        if (!listener) return d => d;
+        if (!listener) {
+          return d => d;
+        }
         if (listener.once === true) {
           this.removeListener(evt, listener.listener);
         }
@@ -250,7 +258,6 @@ proto.emitEventChain = function emitEventWithNext(evt, args) {
       })(0)();
     }
   }
-
   return this;
 };
 

@@ -177,7 +177,7 @@ var Store = function () {
     var emitter = this.$emitter;
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', function (action, next) {
-        actionSubscriber(action, next);
+        return actionSubscriber(action, next);
       });
     }
   };

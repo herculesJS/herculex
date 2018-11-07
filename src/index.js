@@ -99,7 +99,7 @@ class Store {
     const emitter = this.$emitter;
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', (action, next) => {
-        actionSubscriber(action, next);
+        return actionSubscriber(action, next);
       });
     }
   }
