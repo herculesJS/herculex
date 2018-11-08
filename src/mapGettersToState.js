@@ -4,7 +4,7 @@ import global from './global';
 
 function filterObjectByKey(array, object) {
   return array.reduce((p, v) => {
-    if (object && object[v]) {
+    if (object && object[v] !== undefined) {
       p[v] = object[v];
     }
     return p;

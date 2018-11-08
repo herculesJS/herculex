@@ -26,7 +26,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function filterObjectByKey(array, object) {
   return array.reduce(function (p, v) {
-    if (object && object[v]) {
+    if (object && object[v] !== undefined) {
       p[v] = object[v];
     }
     return p;
