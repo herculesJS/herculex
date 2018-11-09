@@ -74,6 +74,7 @@ function getIn(state, array) {
  */
 // {%TITLE=操作%}
 function setIn(state, array, value) {
+  if (!array) return state;
   var setRecursively = function setRecursively(state, array, value, index) {
     var clone = {};
     var prop = array[index];
@@ -87,10 +88,8 @@ function setIn(state, array, value) {
         clone = (0, _assign2.default)({}, state);
       }
       // not exists, make new {}
-      newState = (0, _is.isObject)(state) && state[prop] !== undefined ? state[prop] : {};
-
+      newState = ((0, _is.isObject)(state) || (0, _is.isArray)(state)) && state[prop] !== undefined ? state[prop] : {};
       clone[prop] = setRecursively(newState, array, value, index + 1);
-
       return clone;
     }
 

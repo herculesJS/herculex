@@ -48,7 +48,8 @@ export function getIn(state, array, initial = null) {
  * @returns {any} expected - 返回操作完成后新的值
  */
 export function setIn(state, array, value) {
-  const setRecursively = function (state, array, value, index) {
+  if (!array) return state;
+  const setRecursively = function(state, array, value, index) {
     let clone = {};
     let prop = array[index];
     let newState;
@@ -61,10 +62,8 @@ export function setIn(state, array, value) {
         clone = Object.assign({}, state);
       }
       // not exists, make new {}
-      newState = (isObject(state) && state[prop] !== undefined) ? state[prop] : {};
-
+      newState = ((isObject(state) || isArray(state)) && state[prop] !== undefined) ? state[prop] : {};
       clone[prop] = setRecursively(newState, array, value, index + 1);
-
       return clone;
     }
 
