@@ -150,10 +150,10 @@ class Store {
       const currentPageInstance = getCurrentPages().pop() || {};
       // 消费 Resume 字段
       const resumeData = global.messageManager.pop('$RESUME') || {};
-      global.emitter.emitEvent('updateCurrentPath', {
+      global.emitter.emitEvent('updateCurrentPath', Object.assign(currentPageInstance.$routeConfig || {}, {
         currentPath: getPath(currentPageInstance.route),
         context: resumeData
-      });
+      }));
       // 如果有开全局，先触发
       if (that.connectGlobal) {
         // sync global data
@@ -177,7 +177,7 @@ class Store {
         this._isHided = false;
       }
     };
-    config.onLoad = function(query = {}) {
+    config.onLoad = function(query) {
       const onloadInstance = this;
       this.$emitter = emitter;
       this.$globalEmitter = global.emitter;
@@ -239,15 +239,16 @@ class Store {
       const currentPageInstance = getCurrentPages().pop() || {};
       const currentPath = getPath(currentPageInstance.route);
       // 外面携带的数据
-      const loadData = global.messageManager.pop('$RESUME') || {};
+      const contextData = global.messageManager.pop('$RESUME') || {};
       const viewId = currentPageInstance.$viewId || -1;
-      global.emitter.emitEvent('updateCurrentPath', {
+      this.$routeConfig = {
         currentPath,
         query,
-        context: loadData,
+        context: contextData,
         viewId
-      });
-      query.$context = loadData;
+      };
+      global.emitter.emitEvent('updateCurrentPath', this.$routeConfig);
+      // query.$context = loadData;
       that.storeInstance = this;
       const name = that.instanceName || currentPath || viewId || -1;
       // 把命名空间灌到实例
@@ -281,7 +282,7 @@ class Store {
       };
 
       if (originOnLoad) {
-        originOnLoad.apply(this, arguments);
+        originOnLoad.call(this, query, contextData);
       }
     };
     return {

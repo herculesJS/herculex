@@ -234,10 +234,10 @@ var Store = function () {
       var currentPageInstance = getCurrentPages().pop() || {};
       // 消费 Resume 字段
       var resumeData = _global2.default.messageManager.pop('$RESUME') || {};
-      _global2.default.emitter.emitEvent('updateCurrentPath', {
+      _global2.default.emitter.emitEvent('updateCurrentPath', (0, _assign2.default)(currentPageInstance.$routeConfig || {}, {
         currentPath: getPath(currentPageInstance.route),
         context: resumeData
-      });
+      }));
       // 如果有开全局，先触发
       if (that.connectGlobal) {
         // sync global data
@@ -257,10 +257,8 @@ var Store = function () {
         this._isHided = false;
       }
     };
-    config.onLoad = function () {
+    config.onLoad = function (query) {
       var _this3 = this;
-
-      var query = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
       var onloadInstance = this;
       this.$emitter = emitter;
@@ -317,15 +315,16 @@ var Store = function () {
       var currentPageInstance = getCurrentPages().pop() || {};
       var currentPath = getPath(currentPageInstance.route);
       // 外面携带的数据
-      var loadData = _global2.default.messageManager.pop('$RESUME') || {};
+      var contextData = _global2.default.messageManager.pop('$RESUME') || {};
       var viewId = currentPageInstance.$viewId || -1;
-      _global2.default.emitter.emitEvent('updateCurrentPath', {
+      this.$routeConfig = {
         currentPath: currentPath,
         query: query,
-        context: loadData,
+        context: contextData,
         viewId: viewId
-      });
-      query.$context = loadData;
+      };
+      _global2.default.emitter.emitEvent('updateCurrentPath', this.$routeConfig);
+      // query.$context = loadData;
       that.storeInstance = this;
       var name = that.instanceName || currentPath || viewId || -1;
       // 把命名空间灌到实例
@@ -361,7 +360,7 @@ var Store = function () {
       };
 
       if (originOnLoad) {
-        originOnLoad.apply(this, arguments);
+        originOnLoad.call(this, query, contextData);
       }
     };
     return _extends({}, config, _createHelpers2.default.call(this, that.actions, that.mutations, that.$emitter));
