@@ -128,7 +128,7 @@ export function deleteIn(state, array) {
  * {%compose%}
  */
 export function compose(array) {
-  array.reduce((p, v) => {
+  return array.reduce((p, v) => {
     if (isFunc(v)) {
       return v(p);
     }

@@ -154,7 +154,7 @@ function deleteIn(state, array) {
  * {%compose%}
  */
 function compose(array) {
-  array.reduce(function (p, v) {
+  return array.reduce(function (p, v) {
     if ((0, _is.isFunc)(v)) {
       return v(p);
     }

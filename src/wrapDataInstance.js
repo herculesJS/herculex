@@ -3,10 +3,14 @@ import update from 'immutability-helper';
 import { getIn, setIn, deleteIn, compose, produce } from './utils/manipulate';
 import { isArray, isString } from './utils/is';
 export default function(instance = {}, context) {
-  instance.getIn = function(path, initial) {
+  instance.getIn = function(path, initial, ...funcs) {
     const ctx = context ? context.data : this;
     const pathArray = isString(path) ? [path] : path;
-    return getIn(ctx, pathArray, initial);
+    const result = getIn(ctx, pathArray, initial);
+    if (funcs.length) {
+      return compose([result].concat(funcs));
+    }
+    return result;
   };
   instance.setIn = function(path, initial) {
     const ctx = context ? context.data : this;

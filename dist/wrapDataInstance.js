@@ -11,7 +11,16 @@ exports.default = function () {
   instance.getIn = function (path, initial) {
     var ctx = context ? context.data : this;
     var pathArray = (0, _is.isString)(path) ? [path] : path;
-    return (0, _manipulate.getIn)(ctx, pathArray, initial);
+    var result = (0, _manipulate.getIn)(ctx, pathArray, initial);
+
+    for (var _len = arguments.length, funcs = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      funcs[_key - 2] = arguments[_key];
+    }
+
+    if (funcs.length) {
+      return (0, _manipulate.compose)([result].concat(funcs));
+    }
+    return result;
   };
   instance.setIn = function (path, initial) {
     var ctx = context ? context.data : this;
@@ -37,8 +46,8 @@ exports.default = function () {
   instance.compose = function () {
     var ctx = context ? context.data : this;
 
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
+    for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
     }
 
     var composeArray = (0, _is.isArray)(args[0]) ? args[0] : args;
