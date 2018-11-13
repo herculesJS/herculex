@@ -78,10 +78,11 @@ class Store {
   // 实现 store.subscribe
   subscribe (subscriber, actionSubscriber) {
     const emitter = this.$emitter;
+    const originViewInstance = getCurrentPages().pop() || {};
     if (subscriber) {
       emitter.addListener('updateState', ({ state, mutation, prevState }) => {
         const currentPageInstance = getCurrentPages().pop() || {};
-        const instanceView = this.storeInstance.$viewId || -1;
+        const instanceView = originViewInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
         if (instanceView === currentView) {
@@ -97,9 +98,15 @@ class Store {
   };
   subscribeAction(actionSubscriber) {
     const emitter = this.$emitter;
+    const originViewInstance = getCurrentPages().pop() || {};
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', (action, next) => {
-        return actionSubscriber(action, next);
+        const currentPageInstance = getCurrentPages().pop() || {};
+        const instanceView = originViewInstance.$viewId || -1;
+        const currentView = currentPageInstance.$viewId || -1;
+        if (instanceView === currentView) {
+          return actionSubscriber(action, next);
+        }
       });
     }
   }

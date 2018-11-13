@@ -151,6 +151,7 @@ var Store = function () {
     var _this2 = this;
 
     var emitter = this.$emitter;
+    var originViewInstance = getCurrentPages().pop() || {};
     if (subscriber) {
       emitter.addListener('updateState', function (_ref2) {
         var state = _ref2.state,
@@ -158,7 +159,7 @@ var Store = function () {
             prevState = _ref2.prevState;
 
         var currentPageInstance = getCurrentPages().pop() || {};
-        var instanceView = _this2.storeInstance.$viewId || -1;
+        var instanceView = originViewInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
         if (instanceView === currentView) {
@@ -175,9 +176,15 @@ var Store = function () {
 
   Store.prototype.subscribeAction = function subscribeAction(actionSubscriber) {
     var emitter = this.$emitter;
+    var originViewInstance = getCurrentPages().pop() || {};
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', function (action, next) {
-        return actionSubscriber(action, next);
+        var currentPageInstance = getCurrentPages().pop() || {};
+        var instanceView = originViewInstance.$viewId || -1;
+        var currentView = currentPageInstance.$viewId || -1;
+        if (instanceView === currentView) {
+          return actionSubscriber(action, next);
+        }
       });
     }
   };
