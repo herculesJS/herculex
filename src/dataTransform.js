@@ -39,7 +39,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
       }
       p[v] = finalData[mapStateToProps[v]];
     } else {
-      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, wrapDataInstance(ownProps), config);
+      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, wrapDataInstance(ownProps), stateToExpose.$global, config);
     }
     return p;
   }, {});

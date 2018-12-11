@@ -1,4 +1,4 @@
-import { isString, isArray } from './utils/is';
+import { isString, isArray, isFunc } from './utils/is';
 import EventEmitter from './emitter';
 import _innerPlugins from './innerPlugins';
 import mapGettersToState from './mapGettersToState';
@@ -12,7 +12,6 @@ import { mapActionsToMethod, mapMutationsToMethod } from './mapHelpersToMethod';
 import configPreHandler from './storeConfigPreHandle';
 import wrapState from './utils/wrapState';
 import defaultMixin from './mixins/default';
-import { isFunction } from 'util';
 import './polyfill/index';
 
 function getPath(link) {
@@ -111,7 +110,7 @@ class Store {
     }
   }
   use(option = defaultMixin) {
-    if (isFunction(option)) {
+    if (isFunc(option)) {
       return option.call(this, this.register, global);
     } else {
       return this.register(option);

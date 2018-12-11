@@ -67,7 +67,7 @@ function setDataByStateProps(mapStateToProps) {
       }
       p[v] = finalData[mapStateToProps[v]];
     } else {
-      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, (0, _wrapDataInstance2.default)(ownProps), config);
+      p[v] = mapStateToProps[v](stateToExpose, gettersToExpose, (0, _wrapDataInstance2.default)(ownProps), stateToExpose.$global, config);
     }
     return p;
   }, {});

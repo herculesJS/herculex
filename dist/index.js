@@ -61,8 +61,6 @@ var _default = require('./mixins/default');
 
 var _default2 = _interopRequireDefault(_default);
 
-var _util = require('util');
-
 require('./polyfill/index');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -192,7 +190,7 @@ var Store = function () {
   Store.prototype.use = function use() {
     var option = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _default2.default;
 
-    if ((0, _util.isFunction)(option)) {
+    if ((0, _is.isFunc)(option)) {
       return option.call(this, this.register, _global2.default);
     } else {
       return this.register(option);

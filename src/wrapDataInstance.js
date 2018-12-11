@@ -1,6 +1,4 @@
-import update from 'immutability-helper';
-
-import { getIn, setIn, deleteIn, compose, produce } from './utils/manipulate';
+import { getIn, setIn, deleteIn, compose, produce, update } from './utils/manipulate';
 import { isArray, isString } from './utils/is';
 export default function(instance = {}, context) {
   instance.getIn = function(path, initial, ...funcs) {

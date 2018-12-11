@@ -16,9 +16,9 @@ exports.compose = compose;
 
 var _is = require('./is');
 
-var _immutabilityHelper = require('immutability-helper');
+var _immutabilityHelperEnhanced = require('immutability-helper-enhanced');
 
-var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
+var _immutabilityHelperEnhanced2 = _interopRequireDefault(_immutabilityHelperEnhanced);
 
 var _immer = require('immer');
 
@@ -164,5 +164,5 @@ function compose(array) {
     return p;
   });
 }
-exports.update = _immutabilityHelper2.default;
+exports.update = _immutabilityHelperEnhanced2.default;
 exports.produce = _immer2.default;

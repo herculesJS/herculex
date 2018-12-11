@@ -35,7 +35,7 @@ exports.default = function () {
   // use immutablity helper
   instance.$update = function (manipulate) {
     var ctx = context ? context.data : this;
-    return (0, _immutabilityHelper2.default)(ctx, manipulate);
+    return (0, _manipulate.update)(ctx, manipulate);
   };
   // use immer
   instance.$produce = function (manipulate) {
@@ -57,12 +57,6 @@ exports.default = function () {
   return instance;
 };
 
-var _immutabilityHelper = require('immutability-helper');
-
-var _immutabilityHelper2 = _interopRequireDefault(_immutabilityHelper);
-
 var _manipulate = require('./utils/manipulate');
 
 var _is = require('./utils/is');
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }

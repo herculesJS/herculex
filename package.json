@@ -1,6 +1,6 @@
 {
   "name": "herculex",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Simple, predictable, developer friendly state management for alipay mini-program",
   "main": "dist/index.js",
   "scripts": {
@@ -22,7 +22,8 @@
     "pre-commit": "^1.2.2"
   },
   "dependencies": {
-    "immer": "^1.7.2",
-    "immutability-helper": "^2.8.1"
+    "immutability-helper-enhanced": "^2.8.1",
+    "babel-runtime": "^6.26.0",
+    "immer": "^1.7.2"
   }
 }

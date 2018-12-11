@@ -1,6 +1,6 @@
 // {%TITLE=操作%}
 import { isFunc, isArray, isObject } from './is';
-import update from 'immutability-helper';
+import update from 'immutability-helper-enhanced';
 import produce from 'immer';
 
 /**
