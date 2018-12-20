@@ -97,17 +97,26 @@ proto.addListener = function addListener(evt, listener) {
   var listeners = this.getListenersAsObject(evt);
   var listenerIsWrapped = typeof listener === 'object';
   var key;
-
+  var uid;
   for (key in listeners) {
     if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listener) === -1) {
+      uid = 'lisitener_' + key + '_' + new Date().getTime();
       listeners[key].push(listenerIsWrapped ? listener : {
         listener: listener,
-        once: false
+        once: false,
+        uid: uid
       });
     }
   }
-
-  return listener;
+  return function () {
+    var removeIndex = listeners[key].findIndex(function (o) {
+      return o.uid === uid;
+    });
+    if (removeIndex !== -1) {
+      listeners[key].splice(removeIndex, 1);
+    }
+    return proto;
+  };
 };
 
 proto.on = alias('addListener');
@@ -141,7 +150,6 @@ proto.removeListener = function removeListener(evt, listener) {
   for (key in listeners) {
     if (listeners.hasOwnProperty(key)) {
       index = indexOfListener(listeners[key], listener);
-
       if (index !== -1) {
         listeners[key].splice(index, 1);
       }

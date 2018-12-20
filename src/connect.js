@@ -31,6 +31,7 @@ export default function connect(options) {
       mapMutationsToMethod(options.mapMutationsToMethod, config.methods);
     }
     const _didMount = config.didMount;
+    const _didUnMount = config.didUnmount;
     const key = namespace || instanceName;
     Object.assign(config.data, data);
     Object.assign(config.props, props);
@@ -61,13 +62,14 @@ export default function connect(options) {
         });
         this.$emitter = global.emitter;
         const store = targetInstanceObj.store;
+        this.$store = store;
         const initialData = setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
         global.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
         if (mapStateToProps) {
           // store 触发的更新
-          store.$emitter.addListener('updateState', ({state = {}}) => {
+          this.herculexUpdateLisitener = store.$emitter.addListener('updateState', ({state = {}}) => {
             const nextData = setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
             const originBindViewId = this.$page.$viewId || -1;
             const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
@@ -77,6 +79,12 @@ export default function connect(options) {
         }
         if (typeof _didMount === 'function') {
           _didMount.call(this);
+        }
+      },
+      didUnmount() {
+        this.herculexUpdateLisitener && this.herculexUpdateLisitener();
+        if (typeof _didUnMount === 'function') {
+          _didUnMount.call(this);
         }
       }
     };

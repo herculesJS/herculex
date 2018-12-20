@@ -79,7 +79,7 @@ class Store {
     const emitter = this.$emitter;
     const originViewInstance = getCurrentPages().pop() || {};
     if (subscriber) {
-      emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+      this.storeUpdateLisitenerDispose = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
         const currentPageInstance = getCurrentPages().pop() || {};
         const instanceView = originViewInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
@@ -90,7 +90,7 @@ class Store {
       });
     }
     if (actionSubscriber) {
-      emitter.addListener('dispatchAction', (action, next) => {
+      this.storeDispatchActionLisitenerDispose = emitter.addListener('dispatchAction', (action, next) => {
         actionSubscriber(action, next);
       });
     }
@@ -150,6 +150,12 @@ class Store {
       global.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route)
       });
+      this.herculexUpdateLisitener && this.herculexUpdateLisitener();
+      this.herculexUpdateLisitenerGlobal && this.herculexUpdateLisitenerGlobal();
+      if (this.$store) {
+        this.$store.storeUpdateLisitenerDispose && this.$store.storeUpdateLisitenerDispose();
+        this.$store.storeDispatchActionLisitenerDispose && this.$store.storeDispatchActionLisitenerDispose();
+      }
       originOnUnload && originOnUnload.apply(this, arguments);
     };
     config.onShow = function(d) {
@@ -191,7 +197,7 @@ class Store {
       this.$store = that;
       this.$when = that.when;
         // 先榜上更新 store 的 监听器
-      emitter.addListener('updateState', ({ state }) => {
+      this.herculexUpdateLisitener = emitter.addListener('updateState', ({ state }) => {
         const newData = setStoreDataByState(this.data, state);
         const currentPageInstance = getCurrentPages().pop() || {};
         const instanceView = onloadInstance.$viewId || -1;
@@ -218,7 +224,7 @@ class Store {
         });
 
         // 增加nextprops的关联
-        global.emitter.addListener('updateGlobalStore', () => {
+        this.herculexUpdateLisitenerGlobal = global.emitter.addListener('updateGlobalStore', () => {
           const currentPageInstance = getCurrentPages().pop() || {};
           const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
@@ -296,34 +302,34 @@ class Store {
       ...createHelpers.call(this, that.actions, that.mutations, that.$emitter)
     };
   }
-  connect(options) {
-    const { mapStateToProps = [], mapGettersToProps } = options;
-    const that = this;
-    return function (config) {
-      const _didMount = config.didMount;
-      Object.assign(that.mutations, config.mutations || {});
-      return {
-        ...config,
-        methods: {
-          ...config.methods,
-          ...createConnectHelpers.call(this, that)
-        },
-        didMount() {
-          const initialData = setDataByStateProps(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
-          this.setData(initialData);
-          if (mapStateToProps) {
-            that.$emitter.addListener('updateState', ({state = {}}) => {
-              const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps);
-              this.setData(nextData);
-            });
-          }
-          if (typeof _didMount === 'function') {
-            _didMount.call(this);
-          }
-        }
-      };
-    };
-  }
+  // connect(options) {
+  //   const { mapStateToProps = [], mapGettersToProps } = options;
+  //   const that = this;
+  //   return function (config) {
+  //     const _didMount = config.didMount;
+  //     Object.assign(that.mutations, config.mutations || {});
+  //     return {
+  //       ...config,
+  //       methods: {
+  //         ...config.methods,
+  //         ...createConnectHelpers.call(this, that)
+  //       },
+  //       didMount() {
+  //         const initialData = setDataByStateProps(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
+  //         this.setData(initialData);
+  //         if (mapStateToProps) {
+  //           that.$emitter.addListener('updateState', ({state = {}}) => {
+  //             const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps);
+  //             this.setData(nextData);
+  //           });
+  //         }
+  //         if (typeof _didMount === 'function') {
+  //           _didMount.call(this);
+  //         }
+  //       }
+  //     };
+  //   };
+  // }
 }
 
 export default Store;

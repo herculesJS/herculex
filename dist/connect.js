@@ -67,6 +67,7 @@ function connect(options) {
       (0, _mapHelpersToMethod.mapMutationsToMethod)(options.mapMutationsToMethod, config.methods);
     }
     var _didMount = config.didMount;
+    var _didUnMount = config.didUnmount;
     var key = namespace || instanceName;
     (0, _assign2.default)(config.data, data);
     (0, _assign2.default)(config.props, props);
@@ -95,13 +96,14 @@ function connect(options) {
         });
         this.$emitter = _global2.default.emitter;
         var store = targetInstanceObj.store;
+        this.$store = store;
         var initialData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
         _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
         if (mapStateToProps) {
           // store 触发的更新
-          store.$emitter.addListener('updateState', function (_ref) {
+          this.herculexUpdateLisitener = store.$emitter.addListener('updateState', function (_ref) {
             var _ref$state = _ref.state,
                 state = _ref$state === undefined ? {} : _ref$state;
 
@@ -114,6 +116,12 @@ function connect(options) {
         }
         if (typeof _didMount === 'function') {
           _didMount.call(this);
+        }
+      },
+      didUnmount: function didUnmount() {
+        this.herculexUpdateLisitener && this.herculexUpdateLisitener();
+        if (typeof _didUnMount === 'function') {
+          _didUnMount.call(this);
         }
       }
     });

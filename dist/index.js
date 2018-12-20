@@ -151,7 +151,7 @@ var Store = function () {
     var emitter = this.$emitter;
     var originViewInstance = getCurrentPages().pop() || {};
     if (subscriber) {
-      emitter.addListener('updateState', function (_ref2) {
+      this.storeUpdateLisitenerDispose = emitter.addListener('updateState', function (_ref2) {
         var state = _ref2.state,
             mutation = _ref2.mutation,
             prevState = _ref2.prevState;
@@ -166,7 +166,7 @@ var Store = function () {
       });
     }
     if (actionSubscriber) {
-      emitter.addListener('dispatchAction', function (action, next) {
+      this.storeDispatchActionLisitenerDispose = emitter.addListener('dispatchAction', function (action, next) {
         actionSubscriber(action, next);
       });
     }
@@ -233,6 +233,12 @@ var Store = function () {
       _global2.default.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route)
       });
+      this.herculexUpdateLisitener && this.herculexUpdateLisitener();
+      this.herculexUpdateLisitenerGlobal && this.herculexUpdateLisitenerGlobal();
+      if (this.$store) {
+        this.$store.storeUpdateLisitenerDispose && this.$store.storeUpdateLisitenerDispose();
+        this.$store.storeDispatchActionLisitenerDispose && this.$store.storeDispatchActionLisitenerDispose();
+      }
       originOnUnload && originOnUnload.apply(this, arguments);
     };
     config.onShow = function (d) {
@@ -272,7 +278,7 @@ var Store = function () {
       this.$store = that;
       this.$when = that.when;
       // 先榜上更新 store 的 监听器
-      emitter.addListener('updateState', function (_ref3) {
+      this.herculexUpdateLisitener = emitter.addListener('updateState', function (_ref3) {
         var state = _ref3.state;
 
         var newData = (0, _dataTransform.setStoreDataByState)(_this3.data, state);
@@ -297,7 +303,7 @@ var Store = function () {
         });
 
         // 增加nextprops的关联
-        _global2.default.emitter.addListener('updateGlobalStore', function () {
+        this.herculexUpdateLisitenerGlobal = _global2.default.emitter.addListener('updateGlobalStore', function () {
           var currentPageInstance = getCurrentPages().pop() || {};
           var instanceView = onloadInstance.$viewId || -1;
           var currentView = currentPageInstance.$viewId || -1;
@@ -370,39 +376,35 @@ var Store = function () {
     };
     return _extends({}, config, _createHelpers2.default.call(this, that.actions, that.mutations, that.$emitter));
   };
+  // connect(options) {
+  //   const { mapStateToProps = [], mapGettersToProps } = options;
+  //   const that = this;
+  //   return function (config) {
+  //     const _didMount = config.didMount;
+  //     Object.assign(that.mutations, config.mutations || {});
+  //     return {
+  //       ...config,
+  //       methods: {
+  //         ...config.methods,
+  //         ...createConnectHelpers.call(this, that)
+  //       },
+  //       didMount() {
+  //         const initialData = setDataByStateProps(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
+  //         this.setData(initialData);
+  //         if (mapStateToProps) {
+  //           that.$emitter.addListener('updateState', ({state = {}}) => {
+  //             const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps);
+  //             this.setData(nextData);
+  //           });
+  //         }
+  //         if (typeof _didMount === 'function') {
+  //           _didMount.call(this);
+  //         }
+  //       }
+  //     };
+  //   };
+  // }
 
-  Store.prototype.connect = function connect(options) {
-    var _options$mapStateToPr = options.mapStateToProps,
-        mapStateToProps = _options$mapStateToPr === undefined ? [] : _options$mapStateToPr,
-        mapGettersToProps = options.mapGettersToProps;
-
-    var that = this;
-    return function (config) {
-      var _didMount = config.didMount;
-      (0, _assign2.default)(that.mutations, config.mutations || {});
-      return _extends({}, config, {
-        methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(this, that)),
-        didMount: function didMount() {
-          var _this4 = this;
-
-          var initialData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
-          this.setData(initialData);
-          if (mapStateToProps) {
-            that.$emitter.addListener('updateState', function (_ref4) {
-              var _ref4$state = _ref4.state,
-                  state = _ref4$state === undefined ? {} : _ref4$state;
-
-              var nextData = (0, _dataTransform.setDataByStateProps)(mapStateToProps, state, config, mapGettersToProps);
-              _this4.setData(nextData);
-            });
-          }
-          if (typeof _didMount === 'function') {
-            _didMount.call(this);
-          }
-        }
-      });
-    };
-  };
 
   return Store;
 }();
