@@ -1,6 +1,6 @@
 {
   "name": "herculex",
-  "version": "0.2.11-beta.2",
+  "version": "0.2.11-beta.3",
   "description": "Simple, predictable, developer friendly state management for alipay mini-program",
   "main": "dist/index.js",
   "scripts": {
@@ -10,6 +10,9 @@
   "prepublish": "npm run build && npm version patch",
   "author": "candy.zhengxq@gmail.com",
   "license": "ISC",
+  "files": [
+    "dist"
+  ],
   "pre-commit": [
     "lint"
   ],
