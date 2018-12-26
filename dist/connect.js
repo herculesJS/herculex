@@ -39,7 +39,8 @@ var defaultConfig = {
 };
 
 function connect(options) {
-  var _options$mapStateToPr = options.mapStateToProps,
+  var name = options.name,
+      _options$mapStateToPr = options.mapStateToProps,
       mapStateToProps = _options$mapStateToPr === undefined ? [] : _options$mapStateToPr,
       _options$mapGettersTo = options.mapGettersToProps,
       mapGettersToProps = _options$mapGettersTo === undefined ? [] : _options$mapGettersTo,
@@ -74,12 +75,11 @@ function connect(options) {
     return _extends({}, config, {
       methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config)),
       didMount: function didMount() {
-        var _this = this;
-
         var that = this;
         // 组件可以添加 $ref 来拿相应的实例
         var propsRef = this.props.$ref;
-        var key = namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
+        var propsNamespace = this.props.$namespace;
+        var key = propsNamespace || namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
         var targetInstanceObj = _global2.default.getInstance(key);
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
@@ -87,8 +87,9 @@ function connect(options) {
           return;
         }
         // 当前component表达
-        var componentIs = getPath(this.is, 2);
-        var currentRoute = targetInstanceObj.store.getInstance().route;
+        var componentIs = name || getPath(this.is, 2);
+        var currentStore = targetInstanceObj.store.getInstance();
+        var currentRoute = currentStore.namespace || currentStore.instanceName || currentStore.route || '';
         console.info(componentIs + ' \u7EC4\u4EF6\u5DF2\u5173\u8054 ' + currentRoute + '_' + key + ' \u7684 store', targetInstanceObj);
         (0, _assign2.default)(this, {
           storeConfig: targetInstanceObj.config,
@@ -108,9 +109,9 @@ function connect(options) {
                 state = _ref$state === undefined ? {} : _ref$state;
 
             var nextData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
-            var originBindViewId = _this.$page.$viewId || -1;
-            var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
-            if (originBindViewId !== currentViewId) return;
+            // const originBindViewId = this.$page.$viewId || -1;
+            // const currentViewId = getCurrentPages().slice().pop() ? getCurrentPages().slice().pop().$viewId || -1 : -1;
+            // if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
           });
         }

@@ -16,7 +16,7 @@ const defaultConfig = {
 };
 
 export default function connect(options) {
-  const { mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace, data = {}, props = {} } = options;
+  const { name, mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace, data = {}, props = {} } = options;
   return function (config = defaultConfig) {
     config.data = config.data || {};
     config.props = config.props || {};
@@ -45,7 +45,8 @@ export default function connect(options) {
         const that = this;
         // 组件可以添加 $ref 来拿相应的实例
         const propsRef = this.props.$ref;
-        const key = namespace || instanceName || global.getCurrentPath() || global.getCurrentViewId() || -1;
+        const propsNamespace = this.props.$namespace;
+        const key = propsNamespace || namespace || instanceName || global.getCurrentPath() || global.getCurrentViewId() || -1;
         const targetInstanceObj = global.getInstance(key);
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
@@ -53,8 +54,9 @@ export default function connect(options) {
           return;
         }
         // 当前component表达
-        const componentIs = getPath(this.is, 2);
-        const currentRoute = targetInstanceObj.store.getInstance().route;
+        const componentIs = name || getPath(this.is, 2);
+        const currentStore = targetInstanceObj.store.getInstance();
+        const currentRoute = currentStore.namespace || currentStore.instanceName || currentStore.route || '';
         console.info(`${componentIs} 组件已关联 ${currentRoute}_${key} 的 store`, targetInstanceObj);
         Object.assign(this, {
           storeConfig: targetInstanceObj.config,
@@ -71,9 +73,9 @@ export default function connect(options) {
           // store 触发的更新
           this.herculexUpdateLisitener = store.$emitter.addListener('updateState', ({state = {}}) => {
             const nextData = setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
-            const originBindViewId = this.$page.$viewId || -1;
-            const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
-            if (originBindViewId !== currentViewId) return;
+            // const originBindViewId = this.$page.$viewId || -1;
+            // const currentViewId = getCurrentPages().slice().pop() ? getCurrentPages().slice().pop().$viewId || -1 : -1;
+            // if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
           });
         }
