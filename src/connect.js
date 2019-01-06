@@ -15,7 +15,10 @@ const defaultConfig = {
   methods: {}
 };
 
-export default function connect(options) {
+function getTargetInstance() {
+
+}
+export default function connect(options, directTargetInstanceObj) {
   const { name, mapStateToProps = [], mapGettersToProps = [], instanceName = '', namespace, data = {}, props = {} } = options;
   return function (config = defaultConfig) {
     config.data = config.data || {};
@@ -39,25 +42,30 @@ export default function connect(options) {
       ...config,
       methods: {
         ...config.methods,
-        ...createConnectHelpers.call(global, global, key, config)
+        ...createConnectHelpers.call(global, global, key, config, directTargetInstanceObj)
       },
       didMount() {
         const that = this;
         // 组件可以添加 $ref 来拿相应的实例
         const propsRef = this.props.$ref;
         const propsNamespace = this.props.$namespace;
+        let targetInstanceObj;
         const key = propsNamespace || namespace || instanceName || global.getCurrentPath() || global.getCurrentViewId() || -1;
-        const targetInstanceObj = global.getInstance(key);
+        if (!directTargetInstanceObj) {
+          targetInstanceObj = global.getInstance(key);
+        } else {
+          targetInstanceObj = { ...directTargetInstanceObj };
+        }
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
           _didMount.call(this);
           return;
         }
         // 当前component表达
-        const componentIs = name || getPath(this.is, 2);
+        const componentIs = name || !directTargetInstanceObj && getPath(this.is, 2) || 'unknown';
         const currentStore = targetInstanceObj.store.getInstance();
         const currentRoute = currentStore.namespace || currentStore.instanceName || currentStore.route || '';
-        console.info(`${componentIs} 组件已关联 ${currentRoute}_${key} 的 store`, targetInstanceObj);
+        // console.info(`${componentIs} 组件已关联 ${currentRoute}_${key} 的 store`, targetInstanceObj);
         Object.assign(this, {
           storeConfig: targetInstanceObj.config,
           storeInstance: targetInstanceObj.store
@@ -68,7 +76,9 @@ export default function connect(options) {
         const initialData = setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
-        global.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
+        if (!directTargetInstanceObj) {
+          global.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
+        }
         if (mapStateToProps) {
           // store 触发的更新
           this.herculexUpdateLisitener = store.$emitter.addListener('updateState', ({state = {}}) => {

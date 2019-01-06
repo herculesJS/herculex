@@ -189,7 +189,7 @@ function getConfigFromInstance(target) {
 }
 function createConnectHelpers(global, key) {
   var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var isInstance = arguments[3];
+  var targetInstanceObj = arguments[3];
 
   return {
     commitGlobal: commitGlobal.bind(this),
@@ -197,11 +197,12 @@ function createConnectHelpers(global, key) {
     commit: function commit(type, payload, innerHelper) {
       var finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
 
-      var _ref = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey),
+      var _ref = targetInstanceObj ? getConfigFromInstance(_extends({}, targetInstanceObj.config, targetInstanceObj)) : global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey),
           instance = _ref.instance,
           _ref$mutations = _ref.mutations,
           mutations = _ref$mutations === undefined ? {} : _ref$mutations;
 
+      console.log('mutations', targetInstanceObj, mutations);
       (0, _assign2.default)(mutations, config.mutations);
       if (!type) {
         throw new Error(type + ' not found');
@@ -225,7 +226,7 @@ function createConnectHelpers(global, key) {
         var finalKey, _ref2, instance, _ref2$mutations, mutations, _ref2$actions, actions, realType, actionFunc, self, res;
 
         finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
-        _ref2 = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey), instance = _ref2.instance, _ref2$mutations = _ref2.mutations, mutations = _ref2$mutations === undefined ? {} : _ref2$mutations, _ref2$actions = _ref2.actions, actions = _ref2$actions === undefined ? {} : _ref2$actions;
+        _ref2 = targetInstanceObj ? getConfigFromInstance(_extends({}, targetInstanceObj.config, targetInstanceObj)) : global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey), instance = _ref2.instance, _ref2$mutations = _ref2.mutations, mutations = _ref2$mutations === undefined ? {} : _ref2$mutations, _ref2$actions = _ref2.actions, actions = _ref2$actions === undefined ? {} : _ref2$actions;
 
         if (!type) {
           return $error(new Error('action type not found'));

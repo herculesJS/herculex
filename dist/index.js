@@ -39,9 +39,9 @@ var _global = require('./global');
 
 var _global2 = _interopRequireDefault(_global);
 
-var _connect = require('./connect');
+var _connect2 = require('./connect');
 
-var _connect2 = _interopRequireDefault(_connect);
+var _connect3 = _interopRequireDefault(_connect2);
 
 var _provider = require('./provider');
 
@@ -101,6 +101,21 @@ var Store = function () {
     this.when = this.when.bind(this);
   }
 
+  Store.prototype.getCurrentPages = function (_getCurrentPages) {
+    function getCurrentPages() {
+      return _getCurrentPages.apply(this, arguments);
+    }
+
+    getCurrentPages.toString = function () {
+      return _getCurrentPages.toString();
+    };
+
+    return getCurrentPages;
+  }(function () {
+    // 对currentpage的实现
+    return typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+  });
+
   Store.prototype.getInstance = function getInstance() {
     return this.storeInstance;
   };
@@ -126,7 +141,7 @@ var Store = function () {
             prevState = _ref.prevState;
 
         var newData = (0, _dataTransform.setStoreDataByState)(_this.storeInstance.data, state);
-        var currentPageInstance = getCurrentPages().slice().pop() || {};
+        var currentPageInstance = _this.getCurrentPages().slice().pop() || {};
         var instanceView = _this.storeInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
@@ -149,14 +164,14 @@ var Store = function () {
     var _this2 = this;
 
     var emitter = this.$emitter;
-    var originViewInstance = getCurrentPages().slice().pop() || {};
+    var originViewInstance = this.getCurrentPages().slice().pop() || {};
     if (subscriber) {
       this.storeUpdateLisitenerDispose = emitter.addListener('updateState', function (_ref2) {
         var state = _ref2.state,
             mutation = _ref2.mutation,
             prevState = _ref2.prevState;
 
-        var currentPageInstance = getCurrentPages().slice().pop() || {};
+        var currentPageInstance = _this2.getCurrentPages().slice().pop() || {};
         var instanceView = originViewInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
@@ -173,11 +188,13 @@ var Store = function () {
   };
 
   Store.prototype.subscribeAction = function subscribeAction(actionSubscriber) {
+    var _this3 = this;
+
     var emitter = this.$emitter;
-    var originViewInstance = getCurrentPages().slice().pop() || {};
+    var originViewInstance = this.getCurrentPages().slice().pop() || {};
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', function (action, next) {
-        var currentPageInstance = getCurrentPages().slice().pop() || {};
+        var currentPageInstance = _this3.getCurrentPages().slice().pop() || {};
         var instanceView = originViewInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         if (instanceView === currentView) {
@@ -221,7 +238,7 @@ var Store = function () {
       (0, _mapHelpersToMethod.mapMutationsToMethod)(config.mapMutationsToMethod, config);
     }
     config.onHide = function () {
-      var currentPageInstance = getCurrentPages().slice().pop() || {};
+      var currentPageInstance = that.getCurrentPages().slice().pop() || {};
       _global2.default.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route),
         fromViewId: currentPageInstance.$viewId || -1
@@ -230,7 +247,7 @@ var Store = function () {
       this._isHided = true;
     };
     config.onUnload = function () {
-      var currentPageInstance = getCurrentPages().slice().pop() || {};
+      var currentPageInstance = that.getCurrentPages().slice().pop() || {};
       _global2.default.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route)
       });
@@ -243,7 +260,7 @@ var Store = function () {
       originOnUnload && originOnUnload.apply(this, arguments);
     };
     config.onShow = function (d) {
-      var currentPageInstance = getCurrentPages().slice().pop() || {};
+      var currentPageInstance = that.getCurrentPages().slice().pop() || {};
       // 消费 Resume 字段
       var resumeData = _global2.default.messageManager.pop('$RESUME') || {};
       _global2.default.emitter.emitEvent('updateCurrentPath', (0, _assign2.default)(currentPageInstance.$routeConfig || {}, {
@@ -270,7 +287,7 @@ var Store = function () {
       }
     };
     config.onLoad = function (query) {
-      var _this3 = this;
+      var _this4 = this;
 
       var onloadInstance = this;
       this.$emitter = emitter;
@@ -278,17 +295,18 @@ var Store = function () {
       this.$message = _global2.default.messageManager;
       this.$store = that;
       this.$when = that.when;
+      console.log('eee', that.getCurrentPages());
       // 先榜上更新 store 的 监听器
       this.herculexUpdateLisitener = emitter.addListener('updateState', function (_ref3) {
         var state = _ref3.state;
 
-        var newData = (0, _dataTransform.setStoreDataByState)(_this3.data, state);
-        var currentPageInstance = getCurrentPages().slice().pop() || {};
+        var newData = (0, _dataTransform.setStoreDataByState)(_this4.data, state);
+        var currentPageInstance = that.getCurrentPages().slice().pop() || {};
         var instanceView = onloadInstance.$viewId || -1;
         var currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
         if (instanceView === currentView || currentView === -1) {
-          _this3.setData(newData);
+          _this4.setData(newData);
         }
       });
       if (that.connectGlobal) {
@@ -305,26 +323,26 @@ var Store = function () {
 
         // 增加nextprops的关联
         this.herculexUpdateLisitenerGlobal = _global2.default.emitter.addListener('updateGlobalStore', function () {
-          var currentPageInstance = getCurrentPages().slice().pop() || {};
+          var currentPageInstance = that.getCurrentPages().slice().pop() || {};
           var instanceView = onloadInstance.$viewId || -1;
           var currentView = currentPageInstance.$viewId || -1;
           // 已经不在当前页面的不再触发
           if (instanceView !== currentView && currentView !== -1) return;
           emitter.emitEvent('updateState', {
-            state: _extends({}, _this3.data, {
-              $global: _extends({}, _this3.data.$global, _global2.default.getGlobalState(_this3.mapGlobals))
+            state: _extends({}, _this4.data, {
+              $global: _extends({}, _this4.data.$global, _global2.default.getGlobalState(_this4.mapGlobals))
             }),
             mutation: {
               type: 'sync_global_data'
             },
-            prevState: _this3.data
+            prevState: _this4.data
           });
         });
       }
       this.subscribe = that.subscribe;
       this.subscribeAction = that.subscribeAction;
       // 设置页面 path 和 query
-      var currentPageInstance = getCurrentPages().slice().pop() || {};
+      var currentPageInstance = that.getCurrentPages().slice().pop() || {};
       var currentPath = getPath(currentPageInstance.route);
       // 外面携带的数据
       var contextData = _global2.default.messageManager.pop('$RESUME') || {};
@@ -378,7 +396,7 @@ var Store = function () {
       }
     };
     config.onReady = function () {
-      var currentPageInstance = getCurrentPages().slice().pop() || {};
+      var currentPageInstance = that.getCurrentPages().slice().pop() || {};
       var currentPath = getPath(currentPageInstance.route);
       var viewId = currentPageInstance.$viewId || -1;
       var name = that.instanceName || currentPath || viewId || -1;
@@ -394,6 +412,24 @@ var Store = function () {
       originOnReady && originOnReady.apply(this, arguments);
     };
     return _extends({}, config, _createHelpers2.default.call(this, that.actions, that.mutations, that.$emitter));
+  };
+
+  Store.prototype.connect = function connect(options) {
+    console.log('optopns', options);
+    var targetInstanceObj = {
+      // name: ''
+      store: this,
+      config: {
+        actions: this.actions,
+        mutations: this.mutations,
+        state: this.stateConfig,
+        getters: this.getters
+      },
+      getInstance: function getInstance() {
+        return this.store;
+      }
+    };
+    return (0, _connect3.default)(options, targetInstanceObj);
   };
   // connect(options) {
   //   const { mapStateToProps = [], mapGettersToProps } = options;
@@ -429,5 +465,5 @@ var Store = function () {
 }();
 
 exports.default = Store;
-exports.connect = _connect2.default;
+exports.connect = _connect3.default;
 exports.GlobalStore = _provider2.default;

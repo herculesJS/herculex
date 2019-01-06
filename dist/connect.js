@@ -38,7 +38,8 @@ var defaultConfig = {
   methods: {}
 };
 
-function connect(options) {
+function getTargetInstance() {}
+function connect(options, directTargetInstanceObj) {
   var name = options.name,
       _options$mapStateToPr = options.mapStateToProps,
       mapStateToProps = _options$mapStateToPr === undefined ? [] : _options$mapStateToPr,
@@ -73,24 +74,29 @@ function connect(options) {
     (0, _assign2.default)(config.data, data);
     (0, _assign2.default)(config.props, props);
     return _extends({}, config, {
-      methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config)),
+      methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config, directTargetInstanceObj)),
       didMount: function didMount() {
         var that = this;
         // 组件可以添加 $ref 来拿相应的实例
         var propsRef = this.props.$ref;
         var propsNamespace = this.props.$namespace;
+        var targetInstanceObj = void 0;
         var key = propsNamespace || namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
-        var targetInstanceObj = _global2.default.getInstance(key);
+        if (!directTargetInstanceObj) {
+          targetInstanceObj = _global2.default.getInstance(key);
+        } else {
+          targetInstanceObj = _extends({}, directTargetInstanceObj);
+        }
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
           _didMount.call(this);
           return;
         }
         // 当前component表达
-        var componentIs = name || getPath(this.is, 2);
+        var componentIs = name || !directTargetInstanceObj && getPath(this.is, 2) || 'unknown';
         var currentStore = targetInstanceObj.store.getInstance();
         var currentRoute = currentStore.namespace || currentStore.instanceName || currentStore.route || '';
-        console.info(componentIs + ' \u7EC4\u4EF6\u5DF2\u5173\u8054 ' + currentRoute + '_' + key + ' \u7684 store', targetInstanceObj);
+        // console.info(`${componentIs} 组件已关联 ${currentRoute}_${key} 的 store`, targetInstanceObj);
         (0, _assign2.default)(this, {
           storeConfig: targetInstanceObj.config,
           storeInstance: targetInstanceObj.store
@@ -101,7 +107,9 @@ function connect(options) {
         var initialData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
-        _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
+        if (!directTargetInstanceObj) {
+          _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
+        }
         if (mapStateToProps) {
           // store 触发的更新
           this.herculexUpdateLisitener = store.$emitter.addListener('updateState', function (_ref) {
