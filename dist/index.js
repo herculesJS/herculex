@@ -359,15 +359,16 @@ var Store = function () {
       var name = that.instanceName || currentPath || viewId || -1;
       // 把命名空间灌到实例
       this.instanceName = name;
-      if (name !== -1) {
-        _global2.default.registerInstance(name, {
-          config: { actions: that.actions, mutations: that.mutations, state: initialState },
-          store: that,
-          name: name,
-          currentPath: currentPath,
-          viewId: viewId
-        });
-      }
+      // TODO 检查是否影响支付宝小程序
+      // if (name !== -1) {
+      //   global.registerInstance(name, {
+      //     config: { actions: that.actions, mutations: that.mutations, state: initialState },
+      //     store: that,
+      //     name,
+      //     currentPath,
+      //     viewId
+      //   });
+      // }
       if (that.plugins) {
         that.plugins.forEach(function (element) {
           var pluginFunc = (0, _is.isString)(element) ? _innerPlugins3.default[element] : element;
