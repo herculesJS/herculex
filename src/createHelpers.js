@@ -3,6 +3,7 @@ import { isObject, isFunc, isString } from './utils/is';
 import global from './global';
 import wrapDataInstance from './wrapDataInstance';
 
+// TODO: 这个页面需要重构！
 function startsWith(data, search, pos) {
   return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
 };

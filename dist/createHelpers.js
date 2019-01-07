@@ -31,6 +31,7 @@ var _ExternalPromiseCached;
 
 function _ExternalPromise() { if (_ExternalPromiseCached) return _ExternalPromiseCached; if (typeof window !== 'undefined' && window.Promise && typeof window.Promise.resolve === 'function') { _ExternalPromiseCached = window.Promise; } else { _ExternalPromiseCached = require('babel-runtime/core-js/promise').default || require('babel-runtime/core-js/promise'); } return _ExternalPromiseCached; }
 
+// TODO: 这个页面需要重构！
 function startsWith(data, search, pos) {
   return data.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
 };
