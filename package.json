@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint src",
-    "lintf": "eslint src --fix"
+    "lintf": "eslint src --fix",
+    "dev": "rollup -c --watch",
+    "build": "rollup -c"
   },
   "prepublish": "npm run build && npm version patch",
   "author": "candy.zhengxq@gmail.com",
@@ -17,12 +19,18 @@
     "lint"
   ],
   "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
     "babel-eslint": "~7.1.1",
     "eslint": "~3.5.0",
     "eslint-config-standard": "~6.0.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^2.1.1",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "rollup": "^1.0.2",
+    "rollup-plugin-babel": "^4.2.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0"
   },
   "dependencies": {
     "immutability-helper-enhanced": "^2.8.1",

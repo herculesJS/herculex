@@ -3,7 +3,7 @@
 // -------------------- 常用数据类型判断 ------------------------------
 
 // 输入任意类型, 判断是否是 array 类型
-var isArray = Array.isArray || function isArray(obj) {
+export var isArray = Array.isArray || function isArray(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
 };
 
@@ -14,35 +14,35 @@ var isArray = Array.isArray || function isArray(obj) {
  * {%isObject%}
  * @returns {Number} Returns the value of x for the equation.
  */
-function isObject(obj) {
+export function isObject(obj) {
   return Object.prototype.toString.call(obj) === '[object Object]';
 };
 
-function isString(str) {
+export function isString(str) {
   return Object.prototype.toString.call(str) === '[object String]';
 };
 
-function isPromise(e) {
+export function isPromise(e) {
   return !!e && typeof e.then === 'function';
 };
 
-function isSymbol(d) {
+export function isSymbol(d) {
   return Object.prototype.toString.call(d) === '[object Symbol]';
 }
 
-function isFunc(fuc) {
+export function isFunc(fuc) {
   return Object.prototype.toString.call(fuc) === '[object Function]';
 }
 // TODO: is empty
 
-function isEmptyObject(obj) {
+export function isEmptyObject(obj) {
   if (!isObject(obj)) {
     return false;
   }
   return !Object.keys(obj).length;
 }
 
-function canParseJson(string) {
+export function canParseJson(string) {
   try {
     return JSON.parse(string);
   } catch (e) {
@@ -50,32 +50,16 @@ function canParseJson(string) {
   }
 }
 
-function isTelNum(mobile) {
+export function isTelNum(mobile) {
   return mobile && /^1\d{10}$/.test(mobile);
 }
 
 // ------------------- 常用设备的系统判断, android or ios ------------
 
-function isIOS() {
+export function isIOS() {
   return /iPhone|iTouch|iPad/i.test(navigator.userAgent);
 }
 
-function isAndroid() {
+export function isAndroid() {
   return /android/i.test(navigator.userAgent);
 }
-
-module.exports = {
-  isArray,
-  isObject,
-  isString,
-  isEmptyObject,
-  isSymbol,
-  isFunc,
-  isPromise,
-  canParseJson,
-  // -------
-  isTelNum,
-  // ------
-  isIOS,
-  isAndroid
-};

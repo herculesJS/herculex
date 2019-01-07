@@ -1,7 +1,6 @@
 function EventEmitter() {}
 
 var proto = EventEmitter.prototype;
-var originalGlobalValue = exports.EventEmitter;
 
 function indexOfListener(listeners, listener) {
   var i = listeners.length;
@@ -288,11 +287,6 @@ proto._getOnceReturnValue = function _getOnceReturnValue() {
 
 proto._getEvents = function _getEvents() {
   return this._events || (this._events = {});
-};
-
-EventEmitter.noConflict = function noConflict() {
-  exports.EventEmitter = originalGlobalValue;
-  return EventEmitter;
 };
 
 export default EventEmitter;
