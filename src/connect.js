@@ -51,10 +51,18 @@ export default function connect(options, directTargetInstanceObj) {
         const propsNamespace = this.props.$namespace;
         let targetInstanceObj;
         const key = propsNamespace || namespace || instanceName || global.getCurrentPath() || global.getCurrentViewId() || -1;
-        if (!directTargetInstanceObj) {
-          targetInstanceObj = global.getInstance(key);
-        } else {
+        if (this.$page) {
+          const _store = this.$page.$store;
+          targetInstanceObj = {
+            config: _store.actions,
+            currentPath: getPath(this.$page.route),
+            name: getPath(this.$page.route),
+            store: _store
+          };
+        } else if (directTargetInstanceObj) {
           targetInstanceObj = { ...directTargetInstanceObj };
+        } else {
+          targetInstanceObj = global.getInstance(key);
         }
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');

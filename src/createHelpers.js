@@ -132,11 +132,19 @@ function getConfigFromInstance(target) {
     instance: target.getInstance()
   };
 }
+
 export function createConnectHelpers(global, key, config = {}, targetInstanceObj) {
   return {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
     commit(type, payload, innerHelper) {
+      if (this.$page) {
+        targetInstanceObj = {
+          mutations: this.$page.$store.mutations,
+          actions: this.$page.$store.actions,
+          getInstance: () => this.$page
+        };
+      }
       const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
       const { instance, mutations = {} } = targetInstanceObj ? getConfigFromInstance({
         ...targetInstanceObj.config,
@@ -164,6 +172,13 @@ export function createConnectHelpers(global, key, config = {}, targetInstanceObj
     },
     async dispatch(type, payload) {
       const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
+      if (this.$page) {
+        targetInstanceObj = {
+          mutations: this.$page.$store.mutations,
+          actions: this.$page.$store.actions,
+          getInstance: () => this.$page
+        };
+      }
       const { instance, mutations = {}, actions = {} } = targetInstanceObj ? getConfigFromInstance({
         ...targetInstanceObj.config,
         ...targetInstanceObj

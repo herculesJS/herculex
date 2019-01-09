@@ -112,7 +112,8 @@ var Store = function () {
 
     return getCurrentPages;
   }(function () {
-    // 对currentpage的实现
+    // 对currentpage的实现, 弱依赖
+    // return [];
     return typeof getCurrentPages === 'function' ? getCurrentPages() : [];
   });
 

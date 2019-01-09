@@ -41,7 +41,8 @@ class Store {
     this.when = this.when.bind(this);
   }
   getCurrentPages() {
-    // 对currentpage的实现
+    // 对currentpage的实现, 弱依赖
+    // return [];
     return typeof getCurrentPages === 'function' ? getCurrentPages() : [];
   }
   getInstance() {

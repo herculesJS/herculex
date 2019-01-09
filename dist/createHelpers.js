@@ -187,6 +187,7 @@ function getConfigFromInstance(target) {
     instance: target.getInstance()
   };
 }
+
 function createConnectHelpers(global, key) {
   var config = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
   var targetInstanceObj = arguments[3];
@@ -195,6 +196,17 @@ function createConnectHelpers(global, key) {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
     commit: function commit(type, payload, innerHelper) {
+      var _this = this;
+
+      if (this.$page) {
+        targetInstanceObj = {
+          mutations: this.$page.$store.mutations,
+          actions: this.$page.$store.actions,
+          getInstance: function getInstance() {
+            return _this.$page;
+          }
+        };
+      }
       var finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
 
       var _ref = targetInstanceObj ? getConfigFromInstance(_extends({}, targetInstanceObj.config, targetInstanceObj)) : global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey),
@@ -223,9 +235,20 @@ function createConnectHelpers(global, key) {
     },
     dispatch: function dispatch(type, payload) {
       return new (_ExternalPromise())(function ($return, $error) {
-        var finalKey, _ref2, instance, _ref2$mutations, mutations, _ref2$actions, actions, realType, actionFunc, self, res;
+        var _this2, finalKey, _ref2, instance, _ref2$mutations, mutations, _ref2$actions, actions, realType, actionFunc, self, res;
+
+        _this2 = this;
 
         finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
+        if (this.$page) {
+          targetInstanceObj = {
+            mutations: this.$page.$store.mutations,
+            actions: this.$page.$store.actions,
+            getInstance: function getInstance() {
+              return _this2.$page;
+            }
+          };
+        }
         _ref2 = targetInstanceObj ? getConfigFromInstance(_extends({}, targetInstanceObj.config, targetInstanceObj)) : global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey), instance = _ref2.instance, _ref2$mutations = _ref2.mutations, mutations = _ref2$mutations === undefined ? {} : _ref2$mutations, _ref2$actions = _ref2.actions, actions = _ref2$actions === undefined ? {} : _ref2$actions;
 
         if (!type) {

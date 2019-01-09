@@ -82,10 +82,18 @@ function connect(options, directTargetInstanceObj) {
         var propsNamespace = this.props.$namespace;
         var targetInstanceObj = void 0;
         var key = propsNamespace || namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
-        if (!directTargetInstanceObj) {
-          targetInstanceObj = _global2.default.getInstance(key);
-        } else {
+        if (this.$page) {
+          var _store = this.$page.$store;
+          targetInstanceObj = {
+            config: _store.actions,
+            currentPath: getPath(this.$page.route),
+            name: getPath(this.$page.route),
+            store: _store
+          };
+        } else if (directTargetInstanceObj) {
           targetInstanceObj = _extends({}, directTargetInstanceObj);
+        } else {
+          targetInstanceObj = _global2.default.getInstance(key);
         }
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
