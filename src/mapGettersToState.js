@@ -19,10 +19,15 @@ export default function mapGettersToState(state, getters = {}, store) {
     Object.defineProperty(p, v, {
       get: function() {
         const globalData = store.connectGlobal ? global.getGlobalState(store.mapGlobal) : {};
-        const instance = store.getInstance() ? (store.getInstance().state || {}) : (this || {});
+        const instance = store.getInstance() ? (store.getInstance().state || {}) : ({
+          ...state,
+          $getters: getters,
+          $global: globalData
+        } || {});
         if (isFunc(funcExec)) {
           const params = filterObjectByKey(Object.keys(state), instance);
-          return funcExec.call(this, wrapInstance(params), wrapInstance(instance.$getters), wrapInstance(globalData), global.getState);
+          const res = funcExec.call(this, wrapInstance(params), wrapInstance(instance.$getters), wrapInstance(globalData), global.getState);
+          return res;
         }
         return funcExec;
       }

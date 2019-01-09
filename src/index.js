@@ -17,7 +17,6 @@ import './polyfill/index';
 function getPath(link) {
   return isString(link) && link.split('/')[1];
 }
-
 class Store {
   constructor(store, options) {
     this.$global = global;
@@ -41,6 +40,11 @@ class Store {
     this.subscribeAction = this.subscribeAction.bind(this);
     this.when = this.when.bind(this);
   }
+  getCurrentPages() {
+    // 对currentpage的实现, 弱依赖
+    // return [];
+    return typeof getCurrentPages === 'function' ? getCurrentPages() : [];
+  }
   getInstance() {
     return this.storeInstance;
   }
@@ -58,7 +62,7 @@ class Store {
       }
       const lisitener = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
         const newData = setStoreDataByState(this.storeInstance.data, state);
-        const currentPageInstance = getCurrentPages().pop() || {};
+        const currentPageInstance = this.getCurrentPages().slice().pop() || {};
         const instanceView = this.storeInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
@@ -77,10 +81,10 @@ class Store {
   // 实现 store.subscribe
   subscribe (subscriber, actionSubscriber) {
     const emitter = this.$emitter;
-    const originViewInstance = getCurrentPages().pop() || {};
+    const originViewInstance = this.getCurrentPages().slice().pop() || {};
     if (subscriber) {
       this.storeUpdateLisitenerDispose = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
-        const currentPageInstance = getCurrentPages().pop() || {};
+        const currentPageInstance = this.getCurrentPages().slice().pop() || {};
         const instanceView = originViewInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
@@ -97,10 +101,10 @@ class Store {
   };
   subscribeAction(actionSubscriber) {
     const emitter = this.$emitter;
-    const originViewInstance = getCurrentPages().pop() || {};
+    const originViewInstance = this.getCurrentPages().slice().pop() || {};
     if (actionSubscriber) {
       emitter.addListener('dispatchAction', (action, next) => {
-        const currentPageInstance = getCurrentPages().pop() || {};
+        const currentPageInstance = this.getCurrentPages().slice().pop() || {};
         const instanceView = originViewInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         if (instanceView === currentView) {
@@ -125,6 +129,7 @@ class Store {
     const originOnUnload = config.onUnload;
     const originOnShow = config.onShow;
     const originOnHide = config.onHide;
+    const originOnReady = config.onReady;
     const emitter = this.$emitter;
     // mappers
     if (config.mapActionsToMethod) {
@@ -137,7 +142,7 @@ class Store {
       mapMutationsToMethod(config.mapMutationsToMethod, config);
     }
     config.onHide = function() {
-      const currentPageInstance = getCurrentPages().pop() || {};
+      const currentPageInstance = that.getCurrentPages().slice().pop() || {};
       global.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route),
         fromViewId: currentPageInstance.$viewId || -1
@@ -146,7 +151,7 @@ class Store {
       this._isHided = true;
     };
     config.onUnload = function() {
-      const currentPageInstance = getCurrentPages().pop() || {};
+      const currentPageInstance = that.getCurrentPages().slice().pop() || {};
       global.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route)
       });
@@ -159,7 +164,7 @@ class Store {
       originOnUnload && originOnUnload.apply(this, arguments);
     };
     config.onShow = function(d) {
-      const currentPageInstance = getCurrentPages().pop() || {};
+      const currentPageInstance = that.getCurrentPages().slice().pop() || {};
       // 消费 Resume 字段
       const resumeData = global.messageManager.pop('$RESUME') || {};
       global.emitter.emitEvent('updateCurrentPath', Object.assign(currentPageInstance.$routeConfig || {}, {
@@ -196,14 +201,15 @@ class Store {
       this.$message = global.messageManager;
       this.$store = that;
       this.$when = that.when;
+      console.log('eee', that.getCurrentPages());
         // 先榜上更新 store 的 监听器
       this.herculexUpdateLisitener = emitter.addListener('updateState', ({ state }) => {
         const newData = setStoreDataByState(this.data, state);
-        const currentPageInstance = getCurrentPages().pop() || {};
+        const currentPageInstance = that.getCurrentPages().slice().pop() || {};
         const instanceView = onloadInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
-        if (instanceView === currentView) {
+        if (instanceView === currentView || (currentView === -1)) {
           this.setData(newData);
         }
       });
@@ -225,11 +231,11 @@ class Store {
 
         // 增加nextprops的关联
         this.herculexUpdateLisitenerGlobal = global.emitter.addListener('updateGlobalStore', () => {
-          const currentPageInstance = getCurrentPages().pop() || {};
+          const currentPageInstance = that.getCurrentPages().slice().pop() || {};
           const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
           // 已经不在当前页面的不再触发
-          if (instanceView !== currentView) return;
+          if (instanceView !== currentView && currentView !== -1) return;
           emitter.emitEvent('updateState', {
             state: {
               ...this.data,
@@ -248,7 +254,7 @@ class Store {
       this.subscribe = that.subscribe;
       this.subscribeAction = that.subscribeAction;
       // 设置页面 path 和 query
-      const currentPageInstance = getCurrentPages().pop() || {};
+      const currentPageInstance = that.getCurrentPages().slice().pop() || {};
       const currentPath = getPath(currentPageInstance.route);
       // 外面携带的数据
       const contextData = global.messageManager.pop('$RESUME') || {};
@@ -265,13 +271,16 @@ class Store {
       const name = that.instanceName || currentPath || viewId || -1;
       // 把命名空间灌到实例
       this.instanceName = name;
-      global.registerInstance(name, {
-        config: { actions: that.actions, mutations: that.mutations, state: initialState },
-        store: that,
-        name,
-        currentPath,
-        viewId
-      });
+      // TODO 检查是否影响支付宝小程序
+      // if (name !== -1) {
+      //   global.registerInstance(name, {
+      //     config: { actions: that.actions, mutations: that.mutations, state: initialState },
+      //     store: that,
+      //     name,
+      //     currentPath,
+      //     viewId
+      //   });
+      // }
       if (that.plugins) {
         that.plugins.forEach(element => {
           const pluginFunc = isString(element) ? _innerPlugins[element] : element;
@@ -297,10 +306,43 @@ class Store {
         originOnLoad.call(this, query, contextData);
       }
     };
+    config.onReady = function() {
+      const currentPageInstance = that.getCurrentPages().slice().pop() || {};
+      const currentPath = getPath(currentPageInstance.route);
+      const viewId = currentPageInstance.$viewId || -1;
+      const name = that.instanceName || currentPath || viewId || -1;
+      if (!global.getInstance(name) && name !== -1) {
+        global.registerInstance(name, {
+          config: { actions: that.actions, mutations: that.mutations, state: initialState },
+          store: that,
+          name,
+          currentPath,
+          viewId
+        });
+      }
+      originOnReady && originOnReady.apply(this, arguments);
+    };
     return {
       ...config,
       ...createHelpers.call(this, that.actions, that.mutations, that.$emitter)
     };
+  }
+  connect(options) {
+    console.log('optopns', options);
+    const targetInstanceObj = {
+      // name: ''
+      store: this,
+      config: {
+        actions: this.actions,
+        mutations: this.mutations,
+        state: this.stateConfig,
+        getters: this.getters
+      },
+      getInstance() {
+        return this.store;
+      }
+    };
+    return connect(options, targetInstanceObj);
   }
   // connect(options) {
   //   const { mapStateToProps = [], mapGettersToProps } = options;

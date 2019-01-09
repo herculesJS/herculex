@@ -133,13 +133,26 @@ function getConfigFromInstance(target) {
     instance: target.getInstance()
   };
 }
-export function createConnectHelpers(global, key, config = {}, isInstance) {
+
+export function createConnectHelpers(global, key, config = {}, targetInstanceObj) {
   return {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
     commit(type, payload, innerHelper) {
+      if (this.$page) {
+        targetInstanceObj = {
+          mutations: this.$page.$store.mutations,
+          actions: this.$page.$store.actions,
+          getInstance: () => this.$page
+        };
+      }
       const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
-      const { instance, mutations = {} } = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey);
+      const { instance, mutations = {} } = targetInstanceObj ? getConfigFromInstance({
+        ...targetInstanceObj.config,
+        ...targetInstanceObj
+      })
+      : (global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey));
+      console.log('mutations', targetInstanceObj, mutations);
       Object.assign(mutations, config.mutations);
       if (!type) {
         throw new Error(`${type} not found`);
@@ -160,11 +173,18 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
     },
     async dispatch(type, payload) {
       const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
-      const {
-        instance,
-        mutations = {},
-        actions = {}
-      } = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey);
+      if (this.$page) {
+        targetInstanceObj = {
+          mutations: this.$page.$store.mutations,
+          actions: this.$page.$store.actions,
+          getInstance: () => this.$page
+        };
+      }
+      const { instance, mutations = {}, actions = {} } = targetInstanceObj ? getConfigFromInstance({
+        ...targetInstanceObj.config,
+        ...targetInstanceObj
+      })
+      : (global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey));
       if (!type) {
         throw new Error('action type not found');
       }

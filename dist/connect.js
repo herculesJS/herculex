@@ -38,8 +38,10 @@ var defaultConfig = {
   methods: {}
 };
 
-function connect(options) {
-  var _options$mapStateToPr = options.mapStateToProps,
+function getTargetInstance() {}
+function connect(options, directTargetInstanceObj) {
+  var name = options.name,
+      _options$mapStateToPr = options.mapStateToProps,
       mapStateToProps = _options$mapStateToPr === undefined ? [] : _options$mapStateToPr,
       _options$mapGettersTo = options.mapGettersToProps,
       mapGettersToProps = _options$mapGettersTo === undefined ? [] : _options$mapGettersTo,
@@ -72,24 +74,37 @@ function connect(options) {
     (0, _assign2.default)(config.data, data);
     (0, _assign2.default)(config.props, props);
     return _extends({}, config, {
-      methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config)),
+      methods: _extends({}, config.methods, _createHelpers.createConnectHelpers.call(_global2.default, _global2.default, key, config, directTargetInstanceObj)),
       didMount: function didMount() {
-        var _this = this;
-
         var that = this;
         // 组件可以添加 $ref 来拿相应的实例
         var propsRef = this.props.$ref;
-        var key = namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
-        var targetInstanceObj = _global2.default.getInstance(key);
+        var propsNamespace = this.props.$namespace;
+        var targetInstanceObj = void 0;
+        var key = propsNamespace || namespace || instanceName || _global2.default.getCurrentPath() || _global2.default.getCurrentViewId() || -1;
+        if (this.$page) {
+          var _store = this.$page.$store;
+          targetInstanceObj = {
+            config: _store.actions,
+            currentPath: getPath(this.$page.route),
+            name: getPath(this.$page.route),
+            store: _store
+          };
+        } else if (directTargetInstanceObj) {
+          targetInstanceObj = _extends({}, directTargetInstanceObj);
+        } else {
+          targetInstanceObj = _global2.default.getInstance(key);
+        }
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
           _didMount.call(this);
           return;
         }
         // 当前component表达
-        var componentIs = getPath(this.is, 2);
-        var currentRoute = targetInstanceObj.store.getInstance().route;
-        console.info(componentIs + ' \u7EC4\u4EF6\u5DF2\u5173\u8054 ' + currentRoute + '_' + key + ' \u7684 store', targetInstanceObj);
+        var componentIs = name || !directTargetInstanceObj && getPath(this.is, 2) || 'unknown';
+        var currentStore = targetInstanceObj.store.getInstance();
+        var currentRoute = currentStore.namespace || currentStore.instanceName || currentStore.route || '';
+        // console.info(`${componentIs} 组件已关联 ${currentRoute}_${key} 的 store`, targetInstanceObj);
         (0, _assign2.default)(this, {
           storeConfig: targetInstanceObj.config,
           storeInstance: targetInstanceObj.store
@@ -100,7 +115,9 @@ function connect(options) {
         var initialData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
-        _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
+        if (!directTargetInstanceObj) {
+          _global2.default.registerComponents(propsRef || getPath(currentRoute) + ':' + componentIs, this);
+        }
         if (mapStateToProps) {
           // store 触发的更新
           this.herculexUpdateLisitener = store.$emitter.addListener('updateState', function (_ref) {
@@ -108,9 +125,9 @@ function connect(options) {
                 state = _ref$state === undefined ? {} : _ref$state;
 
             var nextData = _dataTransform.setDataByStateProps.call(that, mapStateToProps, state, config, mapGettersToProps, store.getInstance(), true);
-            var originBindViewId = _this.$page.$viewId || -1;
-            var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
-            if (originBindViewId !== currentViewId) return;
+            // const originBindViewId = this.$page.$viewId || -1;
+            // const currentViewId = getCurrentPages().slice().pop() ? getCurrentPages().slice().pop().$viewId || -1 : -1;
+            // if (originBindViewId !== currentViewId) return;
             that.setData(nextData);
           });
         }

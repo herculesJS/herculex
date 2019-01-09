@@ -44,10 +44,14 @@ function mapGettersToState(state) {
     Object.defineProperty(p, v, {
       get: function get() {
         var globalData = store.connectGlobal ? _global2.default.getGlobalState(store.mapGlobal) : {};
-        var instance = store.getInstance() ? store.getInstance().state || {} : this || {};
+        var instance = store.getInstance() ? store.getInstance().state || {} : _extends({}, state, {
+          $getters: getters,
+          $global: globalData
+        }) || {};
         if ((0, _is.isFunc)(funcExec)) {
           var params = filterObjectByKey(Object.keys(state), instance);
-          return funcExec.call(this, (0, _wrapDataInstance2.default)(params), (0, _wrapDataInstance2.default)(instance.$getters), (0, _wrapDataInstance2.default)(globalData), _global2.default.getState);
+          var res = funcExec.call(this, (0, _wrapDataInstance2.default)(params), (0, _wrapDataInstance2.default)(instance.$getters), (0, _wrapDataInstance2.default)(globalData), _global2.default.getState);
+          return res;
         }
         return funcExec;
       }
