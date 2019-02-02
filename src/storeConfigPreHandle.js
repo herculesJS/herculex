@@ -24,18 +24,7 @@ function configPreHandler(config) {
   config.state = config.state || {};
   config.mutations = config.mutations || {};
   config.actions = config.actions || {};
-  // 给 mutaiton 包装是否需要 immer 操作
-  if (config.mutations) {
-    wrapMutation(config.mutations);
-  }
-  if (config.services) {
-    const serviceRenameObj = Object.keys(config.services).reduce((p, v) => {
-      p[`$service:${v}`] = config.services[v];
-      return p;
-    }, {});
-    Object.assign(config.actions, serviceRenameObj);
-  }
-  // 给插件提供修改初始配置的能力
+    // 给插件提供修改初始配置的能力
   if (config.plugins) {
     config.plugins = config.plugins.map(plugin => {
       if (isArray(plugin)) {
@@ -48,6 +37,17 @@ function configPreHandler(config) {
       }
       return plugin;
     });
+  }
+  // 给 mutaiton 包装是否需要 immer 操作
+  if (config.mutations) {
+    wrapMutation(config.mutations);
+  }
+  if (config.services) {
+    const serviceRenameObj = Object.keys(config.services).reduce((p, v) => {
+      p[`$service:${v}`] = config.services[v];
+      return p;
+    }, {});
+    Object.assign(config.actions, serviceRenameObj);
   }
 }
 
