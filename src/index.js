@@ -40,12 +40,16 @@ class Store {
     this.register = this.register.bind(this);
     this.subscribeAction = this.subscribeAction.bind(this);
     this.when = this.when.bind(this);
+    this.watch = this.watch.bind(this);
   }
   getInstance() {
     return this.storeInstance;
   }
+  watch(predicate, effect) {
+    this.when(predicate, effect, true);
+  }
   // 实现 mobx when
-  when (predicate, effect) {
+  when (predicate, effect, isWatch) {
     const emitter = this.$emitter;
     if (!predicate) return Promise.reject();
     return new Promise((resolve) => {
@@ -68,7 +72,7 @@ class Store {
               effect.call(this, newData);
             }
             resolve(newData);
-            emitter.removeListener('updateState', lisitener);
+            !isWatch && emitter.removeListener('updateState', lisitener);
           }
         }
       });
