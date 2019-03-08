@@ -2,7 +2,7 @@ import { getIn, setIn, deleteIn, compose, produce, update } from './utils/manipu
 import { isArray, isString } from './utils/is';
 export default function(instance = {}, context) {
   // 当实例不是引用则不做wrap
-  if (isString(instance) || typeof instance === 'number') return instance;
+  if (isString(instance) || typeof instance === 'number' || typeof instance === 'boolean') return instance;
   instance.getIn = function(path, initial, ...funcs) {
     const ctx = context ? context.data : this;
     const pathArray = isString(path) ? [path] : path;
