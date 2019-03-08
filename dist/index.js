@@ -99,15 +99,20 @@ var Store = function () {
     this.register = this.register.bind(this);
     this.subscribeAction = this.subscribeAction.bind(this);
     this.when = this.when.bind(this);
+    this.watch = this.watch.bind(this);
   }
 
   Store.prototype.getInstance = function getInstance() {
     return this.storeInstance;
   };
+
+  Store.prototype.watch = function watch(predicate, effect) {
+    this.when(predicate, effect, true);
+  };
   // 实现 mobx when
 
 
-  Store.prototype.when = function when(predicate, effect) {
+  Store.prototype.when = function when(predicate, effect, isWatch) {
     var _this = this;
 
     var emitter = this.$emitter;
@@ -120,7 +125,7 @@ var Store = function () {
         }
         return resolve(initialData);
       }
-      var lisitener = emitter.addListener('updateState', function (_ref) {
+      var dispose = emitter.addListener('updateState', function (_ref) {
         var state = _ref.state,
             mutation = _ref.mutation,
             prevState = _ref.prevState;
@@ -132,11 +137,11 @@ var Store = function () {
         // 已经不在当前页面的不再触发
         if (instanceView === currentView) {
           if (predicate(newData)) {
+            dispose();
             if (effect) {
               effect.call(_this, newData);
             }
             resolve(newData);
-            emitter.removeListener('updateState', lisitener);
           }
         }
       });

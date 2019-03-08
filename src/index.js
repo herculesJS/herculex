@@ -60,7 +60,7 @@ class Store {
         }
         return resolve(initialData);
       }
-      const lisitener = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
+      const dispose = emitter.addListener('updateState', ({ state, mutation, prevState }) => {
         const newData = setStoreDataByState(this.storeInstance.data, state);
         const currentPageInstance = getCurrentPages().pop() || {};
         const instanceView = this.storeInstance.$viewId || -1;
@@ -68,11 +68,11 @@ class Store {
         // 已经不在当前页面的不再触发
         if (instanceView === currentView) {
           if (predicate(newData)) {
+            dispose();
             if (effect) {
               effect.call(this, newData);
             }
             resolve(newData);
-            !isWatch && emitter.removeListener('updateState', lisitener);
           }
         }
       });
