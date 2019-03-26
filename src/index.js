@@ -287,7 +287,7 @@ class Store {
         get: function() { return wrapDataInstance(this.data); }
       });
       this.$getters = wrapDataInstance(this.state.$getters);
-      this.$global = wrapDataInstance({ ...this.state.$global });
+      // this.$global = wrapDataInstance({ ...this.state.$global });
       // 获取其他 store 的只读数据
       this.$getState = function(name) {
         if (!name) return this.state;

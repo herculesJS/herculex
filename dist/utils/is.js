@@ -33,7 +33,8 @@ function isSymbol(d) {
 }
 
 function isFunc(fuc) {
-  return Object.prototype.toString.call(fuc) === '[object Function]';
+  var t = Object.prototype.toString.call(fuc);
+  return t === '[object Function]' || t === '[object AsyncFunction]';
 }
 // TODO: is empty
 

@@ -9,7 +9,7 @@ exports.default = function () {
   var context = arguments[1];
 
   // 当实例不是引用则不做wrap
-  if ((0, _is.isString)(instance) || typeof instance === 'number') return instance;
+  if ((0, _is.isString)(instance) || typeof instance === 'number' || typeof instance === 'boolean') return instance;
   instance.getIn = function (path, initial) {
     var ctx = context ? context.data : this;
     var pathArray = (0, _is.isString)(path) ? [path] : path;

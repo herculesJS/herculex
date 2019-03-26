@@ -365,7 +365,7 @@ var Store = function () {
         }
       });
       this.$getters = (0, _wrapDataInstance2.default)(this.state.$getters);
-      this.$global = (0, _wrapDataInstance2.default)(_extends({}, this.state.$global));
+      // this.$global = wrapDataInstance({ ...this.state.$global });
       // 获取其他 store 的只读数据
       this.$getState = function (name) {
         if (!name) return this.state;

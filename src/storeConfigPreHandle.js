@@ -1,21 +1,19 @@
 import { isArray, isFunc } from './utils/is';
 
-function shouldImmutableDecorate(f) {
+function shouldImmutableDecorate(f, config) {
   if (f._shouldImmutable || f._shouldImmutable === false) {
     return;
   }
   const functionString = f.toString();
   // 当 mutation 写了 return 语句，则自己保证其 immutable，建议就使用提供的 immutable-helper
-  if (!/return /gm.test(functionString)) {
+  if (config.$useImmer || !/return /gm.test(functionString)) {
     f._shouldImmutable = true;
   }
 }
 
 function wrapMutation(config) {
   Object.values(config).forEach(func => {
-    if (!config.mutationImmutableWrapper) {
-      shouldImmutableDecorate(func);
-    }
+    shouldImmutableDecorate(func, config);
   });
 }
 
