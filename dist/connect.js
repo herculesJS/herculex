@@ -20,6 +20,10 @@ var _mapHelpersToMethod = require('./mapHelpersToMethod');
 
 var _is = require('./utils/is');
 
+var _diff = require('./utils/diff');
+
+var _diff2 = _interopRequireDefault(_diff);
+
 var _global = require('./global');
 
 var _global2 = _interopRequireDefault(_global);
@@ -111,7 +115,10 @@ function connect(options) {
             var originBindViewId = _this.$page.$viewId || -1;
             var currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
             if (originBindViewId !== currentViewId) return;
-            that.setData(nextData);
+            var diff = (0, _diff2.default)(_this.data, nextData);
+            if (diff) {
+              that.setData(nextData);
+            }
           });
         }
         if (typeof _didMount === 'function') {

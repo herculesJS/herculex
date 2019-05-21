@@ -2,6 +2,7 @@ import { createConnectHelpers } from './createHelpers';
 import { setDataByStateProps } from './dataTransform';
 import { mapActionsToMethod, mapMutationsToMethod } from './mapHelpersToMethod';
 import { isString } from './utils/is';
+import flatDeepDiff from './utils/diff';
 
 import global from './global';
 
@@ -74,7 +75,10 @@ export default function connect(options) {
             const originBindViewId = this.$page.$viewId || -1;
             const currentViewId = getCurrentPages().pop() ? getCurrentPages().pop().$viewId || -1 : -1;
             if (originBindViewId !== currentViewId) return;
-            that.setData(nextData);
+            const diff = flatDeepDiff(this.data, nextData);
+            if (diff) {
+              that.setData(nextData);
+            }
           });
         }
         if (typeof _didMount === 'function') {
