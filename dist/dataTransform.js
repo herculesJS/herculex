@@ -19,6 +19,14 @@ var _wrapDataInstance = require('./wrapDataInstance');
 
 var _wrapDataInstance2 = _interopRequireDefault(_wrapDataInstance);
 
+var _diff = require('./utils/diff');
+
+var _diff2 = _interopRequireDefault(_diff);
+
+var _clone = require('./utils/clone');
+
+var _clone2 = _interopRequireDefault(_clone);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function setDataByStateProps(mapStateToProps) {
@@ -73,13 +81,14 @@ function setDataByStateProps(mapStateToProps) {
   }, {});
   return _extends({}, outterState, gettersState);
 }
-
 function setStoreDataByState() {
-  var storeData = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var state = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var prev = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+  var next = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-  return Object.keys(state).reduce(function (p, v) {
-    p[v] = state[v];
-    return p;
-  }, storeData);
+  if (!next) return null;
+  var diff = (0, _diff2.default)(prev, next);
+  if (diff && prev.$getters) {
+    diff.$getters = (0, _clone2.default)(prev.$getters);
+  }
+  return diff;
 }

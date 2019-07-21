@@ -1,5 +1,7 @@
 import { isString, isArray, isFunc } from './utils/is';
 import wrapDataInstance from './wrapDataInstance';
+import flattenDiff from './utils/diff';
+import clone from './utils/clone';
 
 export function setDataByStateProps(mapStateToProps, data = {}, config, mapGettersToProps = [], instance, next) {
   let gettersState = {};
@@ -45,10 +47,11 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
   }, {});
   return { ...outterState, ...gettersState };
 }
-
-export function setStoreDataByState(storeData = {}, state = {}) {
-  return Object.keys(state).reduce((p, v) => {
-    p[v] = state[v];
-    return p;
-  }, storeData);
+export function setStoreDataByState(prev = {}, next = {}) {
+  if (!next) return null;
+  const diff = flattenDiff(prev, next);
+  if (diff && prev.$getters) {
+    diff.$getters = clone(prev.$getters);
+  }
+  return diff;
 }

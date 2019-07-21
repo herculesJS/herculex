@@ -117,7 +117,7 @@ function connect(options) {
             if (originBindViewId !== currentViewId) return;
             var diff = (0, _diff2.default)(_this.data, nextData);
             if (diff) {
-              that.setData(nextData);
+              that.setData(diff);
             }
           });
         }

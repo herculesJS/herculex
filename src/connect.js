@@ -77,7 +77,7 @@ export default function connect(options) {
             if (originBindViewId !== currentViewId) return;
             const diff = flatDeepDiff(this.data, nextData);
             if (diff) {
-              that.setData(nextData);
+              that.setData(diff);
             }
           });
         }

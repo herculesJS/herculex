@@ -207,7 +207,7 @@ class Store {
         const instanceView = onloadInstance.$viewId || -1;
         const currentView = currentPageInstance.$viewId || -1;
         // 已经不在当前页面的不再触发
-        if (instanceView === currentView) {
+        if (instanceView === currentView && newData) {
           this.setData(newData);
         }
       });
@@ -296,7 +296,6 @@ class Store {
       this.$getRef = function(name) {
         return global.getComponentRef(name);
       };
-
       if (originOnLoad) {
         originOnLoad.call(this, query, contextData);
       }
