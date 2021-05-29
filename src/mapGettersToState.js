@@ -1,6 +1,6 @@
 import { isFunc } from './utils/is';
 import wrapInstance from './wrapDataInstance';
-import global from './global';
+import myGlobal from './global';
 
 function filterObjectByKey(array, object) {
   return array.reduce((p, v) => {
@@ -18,11 +18,11 @@ export default function mapGettersToState(state, getters = {}, store) {
     p[v] = {};
     Object.defineProperty(p, v, {
       get: function() {
-        const globalData = store.connectGlobal ? global.getGlobalState(store.mapGlobal) : {};
+        const globalData = store.connectGlobal ? myGlobal.getGlobalState(store.mapGlobal) : {};
         const instance = store.getInstance() ? (store.getInstance().state || {}) : (this || {});
         if (isFunc(funcExec)) {
           const params = filterObjectByKey(Object.keys(state), instance);
-          return funcExec.call(this, wrapInstance(params), wrapInstance(instance.$getters), wrapInstance(globalData), global.getState);
+          return funcExec.call(this, wrapInstance(params), wrapInstance(instance.$getters), wrapInstance(globalData), myGlobal.getState);
         }
         return funcExec;
       }

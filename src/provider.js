@@ -1,4 +1,4 @@
-import global from './global';
+import myGlobal from './global';
 import configPreHandler from './storeConfigPreHandle';
 
 function getPath(link) {
@@ -7,11 +7,11 @@ function getPath(link) {
 // 允许空
 export default function GlobalStore(config = {}) {
   configPreHandler(config);
-  global.setGlobalStoreConfig(config);
+  myGlobal.setGlobalStoreConfig(config);
   return function(config) {
     const _onLoad = config.onLoad;
     config.onLoad = function(options) {
-      global.emitter.emitEvent('updateCurrentPath', {
+      myGlobal.emitter.emitEvent('updateCurrentPath', {
         currentPath: getPath(options.path),
         query: {}
       });

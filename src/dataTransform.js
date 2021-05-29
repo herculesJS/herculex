@@ -19,7 +19,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
   // 对齐 redux 的用法，第二个为 ownProps，不是很推荐，每次更新都会计算
   // TODO: 增加记忆点,暂时开发者自己保证
   if (isFunc(mapStateToProps)) {
-    return mapStateToProps.call(instance, stateToExpose, wrapDataInstance(ownProps), gettersToExpose);
+    return mapStateToProps.call(this, stateToExpose, wrapDataInstance(ownProps), gettersToExpose);
   }
   if (isArray(mapStateToProps)) {
     // 必须新增部分包含这样的更新
@@ -39,7 +39,7 @@ export function setDataByStateProps(mapStateToProps, data = {}, config, mapGette
       }
       p[v] = finalData[mapStateToProps[v]];
     } else {
-      p[v] = mapStateToProps[v].call(instance, stateToExpose, gettersToExpose, wrapDataInstance(ownProps), stateToExpose.$global, config);
+      p[v] = mapStateToProps[v].call(this, stateToExpose, gettersToExpose, wrapDataInstance(ownProps), stateToExpose.$global, config);
     }
     return p;
   }, {});

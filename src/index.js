@@ -2,10 +2,10 @@ import { isString, isArray, isFunc } from './utils/is';
 import EventEmitter from './emitter';
 import _innerPlugins from './innerPlugins';
 import mapGettersToState from './mapGettersToState';
-import createHelpers, { createConnectHelpers } from './createHelpers';
-import { setDataByStateProps, setStoreDataByState } from './dataTransform';
+import createHelpers from './createHelpers';
+import { setStoreDataByState } from './dataTransform';
 import wrapDataInstance from './wrapDataInstance';
-import global from './global';
+import myGlobal from './global';
 import connect from './connect';
 import GlobalStore from './provider';
 import { mapActionsToMethod, mapMutationsToMethod } from './mapHelpersToMethod';
@@ -20,7 +20,7 @@ function getPath(link) {
 
 class Store {
   constructor(store, options) {
-    this.$global = global;
+    this.$global = myGlobal;
     this.$emitter = new EventEmitter();
     // 预处理配置转化
     configPreHandler(store);
@@ -35,7 +35,7 @@ class Store {
       instanceName: store.namespace || store.instanceName
     });
     this.stateConfig = mapGettersToState(store.state || {}, this.getters, this);
-    this.stateConfig.$global = this.connectGlobal ? global.getGlobalState(this.mapGlobals) : {};
+    this.stateConfig.$global = this.connectGlobal ? myGlobal.getGlobalState(this.mapGlobals) : {};
     this.subscribe = this.subscribe.bind(this);
     this.register = this.register.bind(this);
     this.subscribeAction = this.subscribeAction.bind(this);
@@ -115,7 +115,7 @@ class Store {
   }
   use(option = defaultMixin) {
     if (isFunc(option)) {
-      return option.call(this, this.register, global);
+      return option.call(this, this.register, myGlobal);
     } else {
       return this.register(option);
     }
@@ -142,7 +142,7 @@ class Store {
     }
     config.onHide = function() {
       const currentPageInstance = getCurrentPages().pop() || {};
-      global.emitter.emitEvent('updateCurrentPath', {
+      myGlobal.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route),
         fromViewId: currentPageInstance.$viewId || -1
       });
@@ -151,7 +151,7 @@ class Store {
     };
     config.onUnload = function() {
       const currentPageInstance = getCurrentPages().pop() || {};
-      global.emitter.emitEvent('updateCurrentPath', {
+      myGlobal.emitter.emitEvent('updateCurrentPath', {
         from: getPath(currentPageInstance.route)
       });
       this.herculexUpdateLisitener && this.herculexUpdateLisitener();
@@ -165,8 +165,8 @@ class Store {
     config.onShow = function(d) {
       const currentPageInstance = getCurrentPages().pop() || {};
       // 消费 Resume 字段
-      const resumeData = global.messageManager.pop('$RESUME') || {};
-      global.emitter.emitEvent('updateCurrentPath', Object.assign(currentPageInstance.$routeConfig || {}, {
+      const resumeData = myGlobal.messageManager.pop('$RESUME') || {};
+      myGlobal.emitter.emitEvent('updateCurrentPath', Object.assign(currentPageInstance.$routeConfig || {}, {
         currentPath: getPath(currentPageInstance.route),
         context: resumeData
       }));
@@ -178,7 +178,7 @@ class Store {
             ...this.data,
             $global: {
               ...this.data.$global,
-              ...global.getGlobalState(this.mapGlobals)
+              ...myGlobal.getGlobalState(this.mapGlobals)
             }
           },
           mutation: {
@@ -196,8 +196,8 @@ class Store {
     config.onLoad = function(query) {
       const onloadInstance = this;
       this.$emitter = emitter;
-      this.$globalEmitter = global.emitter;
-      this.$message = global.messageManager;
+      this.$globalEmitter = myGlobal.emitter;
+      this.$message = myGlobal.messageManager;
       this.$store = that;
       this.$when = that.when;
       // 先榜上更新 store 的 监听器
@@ -218,7 +218,7 @@ class Store {
             ...this.data,
             $global: {
               ...this.data.$global,
-              ...global.getGlobalState(this.mapGlobals)
+              ...myGlobal.getGlobalState(this.mapGlobals)
             }
           },
           mutation: {
@@ -228,7 +228,7 @@ class Store {
         });
 
         // 增加nextprops的关联
-        this.herculexUpdateLisitenerGlobal = global.emitter.addListener('updateGlobalStore', () => {
+        this.herculexUpdateLisitenerGlobal = myGlobal.emitter.addListener('updateGlobalStore', () => {
           const currentPageInstance = getCurrentPages().pop() || {};
           const instanceView = onloadInstance.$viewId || -1;
           const currentView = currentPageInstance.$viewId || -1;
@@ -239,7 +239,7 @@ class Store {
               ...this.data,
               $global: {
                 ...this.data.$global,
-                ...global.getGlobalState(this.mapGlobals)
+                ...myGlobal.getGlobalState(this.mapGlobals)
               }
             },
             mutation: {
@@ -255,7 +255,7 @@ class Store {
       const currentPageInstance = getCurrentPages().pop() || {};
       const currentPath = getPath(currentPageInstance.route);
       // 外面携带的数据
-      const contextData = global.messageManager.pop('$RESUME') || {};
+      const contextData = myGlobal.messageManager.pop('$RESUME') || {};
       const viewId = currentPageInstance.$viewId || -1;
       this.$routeConfig = {
         currentPath,
@@ -263,13 +263,13 @@ class Store {
         context: contextData,
         viewId
       };
-      global.emitter.emitEvent('updateCurrentPath', this.$routeConfig);
+      myGlobal.emitter.emitEvent('updateCurrentPath', this.$routeConfig);
       // query.$context = loadData;
       that.storeInstance = this;
       const name = that.instanceName || currentPath || viewId || -1;
       // 把命名空间灌到实例
       this.instanceName = name;
-      global.registerInstance(name, {
+      myGlobal.registerInstance(name, {
         config: { actions: that.actions, mutations: that.mutations, state: initialState },
         store: that,
         name,
@@ -291,10 +291,10 @@ class Store {
       // 获取其他 store 的只读数据
       this.$getState = function(name) {
         if (!name) return this.state;
-        return global.getState(name);
+        return myGlobal.getState(name);
       };
       this.$getRef = function(name) {
-        return global.getComponentRef(name);
+        return myGlobal.getComponentRef(name);
       };
 
       if (originOnLoad) {
@@ -306,34 +306,6 @@ class Store {
       ...createHelpers.call(this, that.actions, that.mutations, that.$emitter)
     };
   }
-  // connect(options) {
-  //   const { mapStateToProps = [], mapGettersToProps } = options;
-  //   const that = this;
-  //   return function (config) {
-  //     const _didMount = config.didMount;
-  //     Object.assign(that.mutations, config.mutations || {});
-  //     return {
-  //       ...config,
-  //       methods: {
-  //         ...config.methods,
-  //         ...createConnectHelpers.call(this, that)
-  //       },
-  //       didMount() {
-  //         const initialData = setDataByStateProps(mapStateToProps, that.getInstance().data, config, mapGettersToProps);
-  //         this.setData(initialData);
-  //         if (mapStateToProps) {
-  //           that.$emitter.addListener('updateState', ({state = {}}) => {
-  //             const nextData = setDataByStateProps(mapStateToProps, state, config, mapGettersToProps);
-  //             this.setData(nextData);
-  //           });
-  //         }
-  //         if (typeof _didMount === 'function') {
-  //           _didMount.call(this);
-  //         }
-  //       }
-  //     };
-  //   };
-  // }
 }
 
 export default Store;

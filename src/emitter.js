@@ -1,7 +1,7 @@
 function EventEmitter() {}
 
 var proto = EventEmitter.prototype;
-var originalGlobalValue = exports.EventEmitter;
+var originalGlobalValue = EventEmitter;
 
 function indexOfListener(listeners, listener) {
   var i = listeners.length;

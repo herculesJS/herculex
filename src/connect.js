@@ -3,7 +3,7 @@ import { setDataByStateProps } from './dataTransform';
 import { mapActionsToMethod, mapMutationsToMethod } from './mapHelpersToMethod';
 import { isString } from './utils/is';
 
-import global from './global';
+import myGlobal from './global';
 
 function getPath(link, number = 1) {
   return isString(link) && link.split('/')[number];
@@ -39,14 +39,14 @@ export default function connect(options) {
       ...config,
       methods: {
         ...config.methods,
-        ...createConnectHelpers.call(global, global, key, config)
+        ...createConnectHelpers.call(myGlobal, myGlobal, key, config)
       },
       didMount() {
         const that = this;
         // 组件可以添加 $ref 来拿相应的实例
         const propsRef = this.props.$ref;
-        const key = namespace || instanceName || global.getCurrentPath() || global.getCurrentViewId() || -1;
-        const targetInstanceObj = global.getInstance(key);
+        const key = namespace || instanceName || myGlobal.getCurrentPath() || myGlobal.getCurrentViewId() || -1;
+        const targetInstanceObj = myGlobal.getInstance(key);
         if (!targetInstanceObj && typeof _didMount === 'function') {
           console.warn('未绑定 store');
           _didMount.call(this);
@@ -60,13 +60,13 @@ export default function connect(options) {
           storeConfig: targetInstanceObj.config,
           storeInstance: targetInstanceObj.store
         });
-        this.$emitter = global.emitter;
+        this.$emitter = myGlobal.emitter;
         const store = targetInstanceObj.store;
         this.$store = store;
         const initialData = setDataByStateProps.call(that, mapStateToProps, store.getInstance().data, config, mapGettersToProps, store.getInstance());
         this.setData(initialData);
         // 自动注册进 components 实例, propsRef 开发者自己保证唯一性
-        global.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
+        myGlobal.registerComponents(propsRef || `${getPath(currentRoute)}:${componentIs}`, this);
         if (mapStateToProps) {
           // store 触发的更新
           this.herculexUpdateLisitener = store.$emitter.addListener('updateState', ({state = {}}) => {

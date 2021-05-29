@@ -1,6 +1,6 @@
 import { setIn, update, produce, deleteIn } from './utils/manipulate';
 import { isObject, isFunc, isString } from './utils/is';
-import global from './global';
+import myGlobal from './global';
 import wrapDataInstance from './wrapDataInstance';
 
 // TODO: 这个页面需要重构！
@@ -26,7 +26,7 @@ const innerMutation = {
   $update: (s, o) => update(s, o),
   $deleteIn: (s, d) => deleteIn(s, d),
   $resetStore: function() {
-    const { config } = global.getInstanceByViewId(global.getCurrentViewId());
+    const { config } = myGlobal.getInstanceByViewId(myGlobal.getCurrentViewId());
     let next = { ...config.state };
     return next;
   }
@@ -52,7 +52,7 @@ function mutationHandler (func, state, payload, innerHelper) {
 function commitGlobal(type, payload, innerHelper) {
   const {
     mutations = {}
-  } = global.globalStoreConfig;
+  } = myGlobal.globalStoreConfig;
   if (!type) {
     throw new Error(`not found ${type} action`);
   }
@@ -60,21 +60,21 @@ function commitGlobal(type, payload, innerHelper) {
     payload = type;
     type = 'update';
   }
-  const finalMutation = mutationHandler(mutations[type], global.getGlobalState(), payload, innerHelper);
+  const finalMutation = mutationHandler(mutations[type], myGlobal.getGlobalState(), payload, innerHelper);
   const tmp = { state: finalMutation, mutation: { type: `$global:${type}`, payload } };
-  global.emitter.emitEvent('updateState', tmp);
+  myGlobal.emitter.emitEvent('updateState', tmp);
   // commit 的结果是一个同步行为
-  return global.getGlobalState();
+  return myGlobal.getGlobalState();
 }
 
 async function dispatchGlobal(type, payload) {
   const {
     actions = {}
-  } = global.globalStoreConfig;
+  } = myGlobal.globalStoreConfig;
   const actionFunc = actions[type];
   const self = this;
   let res = {};
-  res = await dispatchActionPromise(global.emitter, { type, payload });
+  res = await dispatchActionPromise(myGlobal.emitter, { type, payload });
   if (!actionFunc) {
     console.warn('not found action', type, actions);
     return Promise.resolve(res);
@@ -82,7 +82,7 @@ async function dispatchGlobal(type, payload) {
   res = await actionFunc.call(self, {
     commit: commitGlobal.bind(self),
     dispatch: dispatchGlobal.bind(self),
-    message: global.messageManager,
+    message: myGlobal.messageManager,
     put: function (type, ...args) {
       const func = actions[type];
       if (!func) {
@@ -93,25 +93,25 @@ async function dispatchGlobal(type, payload) {
       }
     },
     get state() {
-      return wrapDataInstance(global.getGlobalState());
+      return wrapDataInstance(myGlobal.getGlobalState());
     },
     get getters() {
-      return wrapDataInstance(global.getGlobalState().$getters);
+      return wrapDataInstance(myGlobal.getGlobalState().$getters);
     },
     get global() {
-      return wrapDataInstance(global.getGlobalState());
+      return wrapDataInstance(myGlobal.getGlobalState());
     },
     getRef(name) {
-      return global.getComponentRef(name);
+      return myGlobal.getComponentRef(name);
     },
     select(filter) {
-      return filter(wrapDataInstance({ ...global.getGlobalState() }));
+      return filter(wrapDataInstance({ ...myGlobal.getGlobalState() }));
     },
     getState(instanceName) {
       if (!instanceName) {
-        return wrapDataInstance(global.getGlobalState());
+        return wrapDataInstance(myGlobal.getGlobalState());
       }
-      return global.getState(instanceName);
+      return myGlobal.getState(instanceName);
     }
   }, wrapDataInstance(payload));
   // 保证结果为一个 promise
@@ -121,8 +121,8 @@ async function dispatchGlobal(type, payload) {
   return Promise.resolve(res);
 }
 
-function getConfigFromGlobal(global, key) {
-  const targetInstanceObj = global.getInstance(key || global.getCurrentViewId());
+function getConfigFromGlobal(myGlobal, key) {
+  const targetInstanceObj = myGlobal.getInstance(key || myGlobal.getCurrentViewId());
   const instance = targetInstanceObj ? targetInstanceObj.store.getInstance() : {};
   return { ...targetInstanceObj.config, instance };
 }
@@ -133,13 +133,13 @@ function getConfigFromInstance(target) {
     instance: target.getInstance()
   };
 }
-export function createConnectHelpers(global, key, config = {}, isInstance) {
+export function createConnectHelpers(myGlobal, key, config = {}, isInstance) {
   return {
     commitGlobal: commitGlobal.bind(this),
     dispatchGlobal: dispatchGlobal.bind(this),
     commit(type, payload, innerHelper) {
-      const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
-      const { instance, mutations = {} } = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey);
+      const finalKey = key || myGlobal.getCurrentPath() || myGlobal.getCurrentViewId() || -1;
+      const { instance, mutations = {} } = myGlobal.storeInstance ? getConfigFromInstance(myGlobal) : getConfigFromGlobal(myGlobal, finalKey);
       Object.assign(mutations, config.mutations);
       if (!type) {
         throw new Error(`${type} not found`);
@@ -159,12 +159,12 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
       return instance.data;
     },
     async dispatch(type, payload) {
-      const finalKey = key || global.getCurrentPath() || global.getCurrentViewId() || -1;
+      const finalKey = key || myGlobal.getCurrentPath() || myGlobal.getCurrentViewId() || -1;
       const {
         instance,
         mutations = {},
         actions = {}
-      } = global.storeInstance ? getConfigFromInstance(global) : getConfigFromGlobal(global, finalKey);
+      } = myGlobal.storeInstance ? getConfigFromInstance(myGlobal) : getConfigFromGlobal(myGlobal, finalKey);
       if (!type) {
         throw new Error('action type not found');
       }
@@ -187,7 +187,7 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
       res = await actionFunc.call(self, {
         commit: this.commit.bind(self),
         dispatch: this.dispatch.bind(self),
-        message: global.messageManager,
+        message: myGlobal.messageManager,
         dispatchGlobal: dispatchGlobal.bind(self),
         commitGlobal: commitGlobal.bind(self),
         put: function (type, ...args) {
@@ -209,13 +209,13 @@ export function createConnectHelpers(global, key, config = {}, isInstance) {
           return wrapDataInstance(instance.data.$global);
         },
         getRef(name) {
-          return global.getComponentRef(name);
+          return myGlobal.getComponentRef(name);
         },
         getState(instanceName) {
           if (!instanceName) {
             return wrapDataInstance(instance.data, self);
           }
-          return global.getState(instanceName);
+          return myGlobal.getState(instanceName);
         },
         select(filter) {
           return filter(wrapDataInstance({ ...instance.data }));
@@ -276,7 +276,7 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
         dispatch: this.dispatch.bind(self),
         dispatchGlobal: dispatchGlobal.bind(self),
         commitGlobal: commitGlobal.bind(self),
-        message: global.messageManager,
+        message: myGlobal.messageManager,
         put: function (type, ...args) {
           const func = actionCache[type];
           if (!func) {
@@ -296,13 +296,13 @@ export default function createHelpers(actions, mutationsObj, emitter, getInstanc
           return wrapDataInstance(self.data.$global);
         },
         getRef(name) {
-          return global.getComponentRef(name);
+          return myGlobal.getComponentRef(name);
         },
         getState(instanceName) {
           if (!instanceName) {
             return wrapDataInstance(self.data, self);
           }
-          return global.getState(instanceName);
+          return myGlobal.getState(instanceName);
         },
         select(filter) {
           return filter(wrapDataInstance({ ...self.data }));
