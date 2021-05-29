@@ -168,7 +168,7 @@ proto.manipulateListeners = function manipulateListeners(remove, evt, listeners)
   var single = remove ? this.removeListener : this.addListener;
   var multiple = remove ? this.removeListeners : this.addListeners;
 
-    // If evt is an object then pass each of its properties to this method
+  // If evt is an object then pass each of its properties to this method
   if (typeof evt === 'object' && !(evt instanceof RegExp)) {
     for (i in evt) {
       if (evt.hasOwnProperty(i) && (value = evt[i])) {
@@ -196,7 +196,7 @@ proto.removeEvent = function removeEvent(evt) {
   if (type === 'string') {
     delete events[evt];
   } else if (evt instanceof RegExp) {
-        // Remove all events matching the regex.
+    // Remove all events matching the regex.
     for (key in events) {
       if (events.hasOwnProperty(key) && evt.test(key)) {
         delete events[key];

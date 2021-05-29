@@ -1,10 +1,5 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-exports.default = function (register) {
+import { mapMutationsToMethod } from '../mapHelpersToMethod';
+export default function (register) {
   var config = {
     onLoad: function onLoad(data) {
       this.dispatch('pageOnLoad', data);
@@ -22,8 +17,6 @@ exports.default = function (register) {
       this.dispatch('pageOnUnload', data);
     }
   };
-  (0, _mapHelpersToMethod.mapMutationsToMethod)(this.methods, config);
+  mapMutationsToMethod(this.methods, config);
   return register(config);
-};
-
-var _mapHelpersToMethod = require('../mapHelpersToMethod');
+}

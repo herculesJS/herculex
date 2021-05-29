@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "lint": "eslint src",
-    "lintf": "eslint src --fix"
+    "lintf": "eslint src --fix",
+    "build": "rimraf lib && babel src --out-dir dist"
   },
   "prepublish": "npm run build && npm version patch",
   "author": "candy.zhengxq@gmail.com",
@@ -17,12 +18,19 @@
     "lint"
   ],
   "devDependencies": {
-    "babel-eslint": "~7.1.1",
-    "eslint": "~3.5.0",
+    "@babel/cli": "^7.14.3",
+    "@babel/core": "^7.14.3",
+    "@babel/eslint-parser": "^7.14.4",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
+    "@babel/plugin-proposal-decorators": "^7.14.2",
+    "@babel/plugin-transform-runtime": "^7.14.3",
+    "@babel/preset-env": "^7.14.4",
+    "eslint": "^7.27.0",
     "eslint-config-standard": "~6.0.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^2.1.1",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "rimraf": "^2.5.4"
   },
   "dependencies": {
     "immutability-helper-enhanced": "^2.8.1",

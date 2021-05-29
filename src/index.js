@@ -200,7 +200,7 @@ class Store {
       this.$message = global.messageManager;
       this.$store = that;
       this.$when = that.when;
-        // 先榜上更新 store 的 监听器
+      // 先榜上更新 store 的 监听器
       this.herculexUpdateLisitener = emitter.addListener('updateState', ({ state }) => {
         const newData = setStoreDataByState(this.data, state);
         const currentPageInstance = getCurrentPages().pop() || {};
@@ -212,7 +212,7 @@ class Store {
         }
       });
       if (that.connectGlobal) {
-       // 立马触发同步
+        // 立马触发同步
         emitter.emitEvent('updateState', {
           state: {
             ...this.data,

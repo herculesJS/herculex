@@ -22,7 +22,7 @@ function configPreHandler(config) {
   config.state = config.state || {};
   config.mutations = config.mutations || {};
   config.actions = config.actions || {};
-    // 给插件提供修改初始配置的能力
+  // 给插件提供修改初始配置的能力
   if (config.plugins) {
     config.plugins = config.plugins.map(plugin => {
       if (isArray(plugin)) {

@@ -3,7 +3,7 @@
   "globals": {
     "getCurrentPages": false
   },
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "rules": {
     "semi": ["error", "always"], //必须使用分号
     "space-before-function-paren": 0,  // function前面的空格没有必要校验,

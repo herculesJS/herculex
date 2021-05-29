@@ -1,11 +1,5 @@
-'use strict';
-
-require('./array.prototype.find');
-
-require('./array.prototype.findIndex');
-
-require('./array.prototype.includes');
-
-require('./string.prototype.includes');
-
-require('./string.prototype.startsWith');
+import './array.prototype.find';
+import './array.prototype.findIndex';
+import './array.prototype.includes';
+import './string.prototype.includes';
+import './string.prototype.startsWith';

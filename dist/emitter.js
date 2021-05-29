@@ -1,8 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
 function EventEmitter() {}
 
 var proto = EventEmitter.prototype;
@@ -10,6 +5,7 @@ var originalGlobalValue = exports.EventEmitter;
 
 function indexOfListener(listeners, listener) {
   var i = listeners.length;
+
   while (i--) {
     if (listeners[i].listener === listener) {
       return i;
@@ -27,11 +23,13 @@ function alias(name) {
 
 proto.getListeners = function getListeners(evt) {
   var events = this._getEvents();
+
   var response;
   var key;
 
   if (evt instanceof RegExp) {
     response = {};
+
     for (key in events) {
       if (events.hasOwnProperty(key) && evt.test(key)) {
         response[key] = events[key];
@@ -43,13 +41,14 @@ proto.getListeners = function getListeners(evt) {
 
   return response;
 };
-
 /**
  * Takes a list of listener objects and flattens it into a list of listener functions.
  *
  * @param {Object[]} listeners Raw listener objects.
  * @return {Function[]} Just the listener functions.
  */
+
+
 proto.flattenListeners = function flattenListeners(listeners) {
   var flatListeners = [];
   var i;
@@ -60,13 +59,14 @@ proto.flattenListeners = function flattenListeners(listeners) {
 
   return flatListeners;
 };
-
 /**
  * Fetches the requested listeners via getListeners but will always return the results inside an object. This is mainly for internal use but others may find it useful.
  *
  * @param {String|RegExp} evt Name of the event to return the listeners from.
  * @return {Object} All listener functions for an event in an object.
  */
+
+
 proto.getListenersAsObject = function getListenersAsObject(evt) {
   var listeners = this.getListeners(evt);
   var response;
@@ -98,9 +98,10 @@ proto.addListener = function addListener(evt, listener) {
   var listenerIsWrapped = typeof listener === 'object';
   var key;
   var uid;
+
   for (key in listeners) {
     if (listeners.hasOwnProperty(key) && indexOfListener(listeners[key], listener) === -1) {
-      uid = 'lisitener_' + key + '_' + new Date().getTime();
+      uid = "lisitener_" + key + "_" + new Date().getTime();
       listeners[key].push(listenerIsWrapped ? listener : {
         listener: listener,
         once: false,
@@ -108,13 +109,16 @@ proto.addListener = function addListener(evt, listener) {
       });
     }
   }
+
   return function () {
     var removeIndex = listeners[key].findIndex(function (o) {
       return o.uid === uid;
     });
+
     if (removeIndex !== -1) {
       listeners[key].splice(removeIndex, 1);
     }
+
     return proto;
   };
 };
@@ -139,6 +143,7 @@ proto.defineEvents = function defineEvents(evts) {
   for (var i = 0; i < evts.length; i += 1) {
     this.defineEvent(evts[i]);
   }
+
   return this;
 };
 
@@ -150,6 +155,7 @@ proto.removeListener = function removeListener(evt, listener) {
   for (key in listeners) {
     if (listeners.hasOwnProperty(key)) {
       index = indexOfListener(listeners[key], listener);
+
       if (index !== -1) {
         listeners[key].splice(index, 1);
       }
@@ -173,9 +179,8 @@ proto.manipulateListeners = function manipulateListeners(remove, evt, listeners)
   var i;
   var value;
   var single = remove ? this.removeListener : this.addListener;
-  var multiple = remove ? this.removeListeners : this.addListeners;
+  var multiple = remove ? this.removeListeners : this.addListeners; // If evt is an object then pass each of its properties to this method
 
-  // If evt is an object then pass each of its properties to this method
   if (typeof evt === 'object' && !(evt instanceof RegExp)) {
     for (i in evt) {
       if (evt.hasOwnProperty(i) && (value = evt[i])) {
@@ -188,6 +193,7 @@ proto.manipulateListeners = function manipulateListeners(remove, evt, listeners)
     }
   } else {
     i = listeners.length;
+
     while (i--) {
       single.call(this, evt, listeners[i]);
     }
@@ -198,8 +204,11 @@ proto.manipulateListeners = function manipulateListeners(remove, evt, listeners)
 
 proto.removeEvent = function removeEvent(evt) {
   var type = typeof evt;
+
   var events = this._getEvents();
+
   var key;
+
   if (type === 'string') {
     delete events[evt];
   } else if (evt instanceof RegExp) {
@@ -225,16 +234,20 @@ proto.emitEvent = function emitEvent(evt, args) {
   var i;
   var key;
   var response;
+
   for (key in listenersMap) {
     if (listenersMap.hasOwnProperty(key)) {
       listeners = listenersMap[key].slice(0);
 
       for (i = 0; i < listeners.length; i++) {
         listener = listeners[i];
+
         if (listener.once === true) {
           this.removeListener(evt, listener.listener);
         }
+
         response = listener.listener.call(this, args || []);
+
         if (response === this._getOnceReturnValue()) {
           this.removeListener(evt, listener.listener);
         }
@@ -245,23 +258,28 @@ proto.emitEvent = function emitEvent(evt, args) {
   return this;
 };
 
-proto.emitEventChain = function emitEventWithNext(evt, args) {
+proto.emitEventChain = function emitEventWithNext(evt, args, cb) {
   var _this = this;
 
-  var cb = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function (d) {
-    return d;
-  };
+  if (cb === void 0) {
+    cb = function cb(d) {
+      return d;
+    };
+  }
 
   var listenersMap = this.getListenersAsObject(evt);
   var listeners;
   var key;
+
   for (key in listenersMap) {
     if (listenersMap.hasOwnProperty(key)) {
       (function () {
         listeners = listenersMap[key].slice(0);
         listeners.push({
-          listener: function listener(action, next) {
-            var last = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+          listener: function listener(action, next, last) {
+            if (last === void 0) {
+              last = {};
+            }
 
             // 最后一个回调获取最终上一次的结果
             cb(last);
@@ -270,23 +288,28 @@ proto.emitEventChain = function emitEventWithNext(evt, args) {
         var that = _this;
         (function createNextFunc(i) {
           var listener = listeners[i];
+
           if (!listener) {
             return function (d) {
               return d;
             };
           }
+
           if (listener.once === true) {
             this.removeListener(evt, listener.listener);
           }
+
           return listener.listener.bind(that, args || [], createNextFunc(i + 1));
         })(0)();
       })();
     }
   }
+
   return this;
 };
 
 proto.trigger = alias('emitEvent');
+
 proto.emit = function emit(evt) {
   var args = Array.prototype.slice.call(arguments, 1);
   return this.emitEvent(evt, args);
@@ -314,4 +337,4 @@ EventEmitter.noConflict = function noConflict() {
   return EventEmitter;
 };
 
-exports.default = EventEmitter;
+export default EventEmitter;

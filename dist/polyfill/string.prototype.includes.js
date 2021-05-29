@@ -1,5 +1,3 @@
-'use strict';
-
 if (!String.prototype.includes) {
   Object.defineProperty(String.prototype, 'includes', {
     value: function value(search, start) {
